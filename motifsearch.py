@@ -120,7 +120,7 @@ def findMotifs(its_region): #Find the motifs
     # end of extractMotif
     
     
-#Put your sequence here
+#Put your sequence here:
 genbankSeq = input ("Enter sequence: ")
 #accessionNum = input("Enter Acession#: ")
 #genbankSeq = str(fetch(accessionNum))
