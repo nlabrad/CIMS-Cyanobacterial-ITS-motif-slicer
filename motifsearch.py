@@ -2,16 +2,21 @@ import re
 from Bio import Entrez, __version__, SeqIO, Seq #import the required libraries
 
 
+#sample sequence
+genbankSeq = "CTTTTGTTCGGGAAGAAGATCTGACGGTACCGAACGAATCAGCATCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGATGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGTCCGCAGGTGGTTGTTCAAGTCTGCTGTCAAAGCGTGGAGCTTAACTCCATACCGGCAGTGGAAACTGGATGACTAGAGTTCGGTAGGGGTTGCGGGAATTCCCAGTGTAGCGGTGAAATGCGTAGATATTGGGAAGAACACCGGCGGCGAAAGCGCGCAACTGGGCCGAGACTGACACTGAGGGACGAAAGCTAGGGGAGCGAAAGGGATTAGATACCCCTGTAGTCCTAGCTGTAAACGATGGGCACTAGGTGTTGACCGTATCGACCCGGTCAGTGCCGTAGCTAACGCGATAAGTGCCCCGCCTGGGGAGTACGCACGCAAGTGTGAAACTCAAAGGAATTGACGGGGGCCCGCACAAGCGGTGGAGTATGTGGTTTAATTCGATGCAACGCGAAGAACCTTACCAGGGCTTGACATGTCTGGGACCTCTGGGAAACTAGAGGGTGCCTTCGGGAACCAGAACACAGGTGGTGCATGGCTGTCGTCAGCTCGTGTCGTGAGATGTTGGGTTAAGTCCCGCAACGAGCGCAACCCTCGTCCTTAGTTGCCAGCATTTAGTTGGGCACTCTGAGGAGACTGCCGGTGACAAACCGGAGGAAGGTGGGGATGACGTCAAGTCAGCATGCCCCTTACGTCCTGGGCTACACACGTACTACAATGCTGTGGACAAAGAGTTGCAAGCACGCGAGTGCAAGCCAATCTCGTAAACCACGGCTCAGTTCAGATTGCAGGCTGCAACTCGCCTGCATGAAGGCGGAATCGCTAGTAATCGCCGGTCAGCATACGGCGGTGAATACGTTCCCGGGCCTTGTACACACCGCCCGTCACACCATGGGAGTTGGCCACGCCCGAAGTCGTTACTCCAACCGAAAGGAGGGGAACGCCGAAGGCAGGGCTGATGACTGGGGTGAAGTCGTAACAAGGTAGCCGTACCGGAAGGTGTGGCTGGATCACCTCCTTTATAGGGAGACCTACCCGCTCAATCGGTGAGAAGAGCGATCTGAAGTCTAGCAGCAATGGCCAGACCATAAAGAGAGCTAAACACCCTAAACATAGCCATTGAGTTGGTCATCCCAAGGTCGGTCAAGGTCAATGATGGTATGGCTTTCAAACAAGTCTAGGTCTGGGAGAGATGGGCTATTAGCTCAGGTGGTTAGAGCGCACCCCTGATAAGGGTGAGGTCCCTGGTTCGAGTCCAGGATGGCCCACCTAGGGGGTTTAGCTCAGTTGGTAGAGCGCCTGCTTTGCAAGCAGGATGTCAGCAGTTCGAGTCTGCTAACCTCCACTAGAAGGAAAAAATACTTCTAGAGTTCAGCAACTTGTCTAACTTAGGTAAATCAGATGTATAGATGATGTGCTAAGTTAGAGAGCCTGCTGGAGTCAAACCAGCCAAGCGAACCTTGAAAACTGCATAGAAACTTGTCAGGTAGATGAGTTATTAGCCTTTGGGTATCAGTAATTAGTTAATAGAGCTAGTTGCTAACCCCTAACAGCTAATGACTTTCATCACAGACACCAATGTTGAGAACTTTTAGTGGTCAAGCTAGAAAGGGCTCATGGTGGA"
+
+
+#Only used when submitting an accession number to look in Genbank, skip to extractMotif for everything else.
 def fetch(accession): #fetch sequence and taxonomy with accession#
     Entrez.email = 'nlab@fastmail.com' # email reported to entrez to associate with the query
     with Entrez.efetch(db='nucleotide', id=accession, rettype='gb') as handle: # id is what genbank ID to query, type is genbank
         record = SeqIO.read(handle, "gb") #get sequence 
         genbank_organism_taxonomy = record.annotations["taxonomy"]
         genbank_organism_sequence = record.seq
-        # print ("Taxonomy: ", genbank_organism_taxonomy)
-        # print ("Sequence:", genbank_organism_sequence)
     return genbank_organism_sequence
 
+
+#Retrieve tax id to then pull taxonomy with get_taxonomy
 def get_tax_id(organism): #pulls organism taxaID
     Entrez.email = 'nlab@fastmail.com' # email reported to entrez to associate with the query
     organism = organism.replace(" ", "+").strip() # replace whitespaces with +
@@ -19,6 +24,8 @@ def get_tax_id(organism): #pulls organism taxaID
     record = Entrez.read(handle)
     return record['IdList'][0] #IdList[0] contains the taxID
 
+
+#get the actual taxonomy info using the tax id.
 def get_taxonomy(tax_id): #uses TaxaID to get the taxa 
     with Entrez.efetch(db='taxonomy', id=tax_id, retmode='xml') as handle:
         record = Entrez.read(handle, validate=False)
@@ -119,14 +126,10 @@ def findMotifs(its_region): #Find the motifs
     return motifs
     # end of extractMotif
     
-    
-#Put your sequence here:
-genbankSeq = input ("Enter sequence: ")
-#accessionNum = input("Enter Acession#: ")
-#genbankSeq = str(fetch(accessionNum))
+
+#uses sample sequence in line 6  
 itsseq = extractITS(genbankSeq)
 extractedMotifs = findMotifs(itsseq[1])
-
 
 print("\nITS Region: ", extractedMotifs["ITS"])
 if(extractedMotifs['leader'] is not None):
