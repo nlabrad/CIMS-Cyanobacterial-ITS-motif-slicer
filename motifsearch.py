@@ -56,6 +56,7 @@ def findMotifs(its_region): #Find the motifs
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
     
     motifs["ITS"] = its_region #store the whole ITS region to be used as a reference.
+    index_shift = 0
     
     d1d1Search = re.search(r"GACCT(.*?)AGGTC", its_region) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
     if (d1d1Search == None): 
@@ -186,8 +187,10 @@ if(args.fasta):
         fasta = open(args.fasta, "r")
         print("Processing fasta file...")
         parse_fasta(fasta)
+        exit()
     except IOError:
-        print ("File not found")    
+        print ("File not found")
+        exit() 
     
 if(args.genbank):
     print("Fetching genbank data...")
