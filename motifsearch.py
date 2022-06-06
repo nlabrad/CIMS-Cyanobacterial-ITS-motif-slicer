@@ -23,23 +23,26 @@ def parse_fasta(fasta):
     for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
         print("Organism name: ", seq_record.id)
         its_sequence = extractITS(str(seq_record.seq))
-        # print("\nITS Region sequence: ", its_sequence)
-        print("\nITS Region length: ", len(its_sequence))
-        motifs = findMotifs(its_sequence)
-        print("Motif  |   [ Start, End, Sequence, Lenght] \n")
-        for key in motifs:
-            if(motifs[key] == None):
-                print(key, ": Not found\n")
-            else:
-                print(key, ': ', motifs[key],'\n')
-        print('------------------------------------------------------------------------------------\n')
+        if(extractITS == "None"):
+            print("No ITS region found in this sequence")
+        else:
+            # print("\nITS Region sequence: ", its_sequence)
+            print("\nITS Region length: ", len(its_sequence))
+            motifs = findMotifs(its_sequence)
+            print("Motif  |   [ Start, End, Sequence, Lenght] \n")
+            for key in motifs:
+                if(motifs[key] == None):
+                    print(key, ": Not found\n")
+                else:
+                    print(key, ': ', motifs[key],'\n')
+            print('------------------------------------------------------------------------------------\n')
 
 #Extraction of ITS region from a 16S-23S region.
 # Find CCTCCTT, get rid of what's before that.
 def extractITS(geneRegion):
     if(re.search("CCTCCTT", geneRegion) == None):
         print("ITS Region not found in this sequence")
-        exit()
+        return None
     else:    
         itsStartPosition = re.search("CCTCCTT", geneRegion).start() + 7
         itsseq = geneRegion[itsStartPosition:]
