@@ -40,11 +40,6 @@ def parse_fasta(fasta):
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
 
-
-#Motifs reference:
-# Motifs["key"] = {'ITS': its region
-#                  'motifName': [start_position, end_position, sequence_string, length]}
-
 def findMotifs(seq): #Find the motifs
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
     index_shift = 0
@@ -52,10 +47,24 @@ def findMotifs(seq): #Find the motifs
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, get rid of what's before that.
     if(re.search("CCTCCTT", seq) == None):
-        return None
+        ans = ''
+        while not (ans=='N'or ans=='Y'):
+            print(Back.RED + Fore.WHITE + "Could not find the end of 16S to determine the ITS region boundaries.")
+            ans = input("Proceed with search anyway? (Y/N)")
+            if (ans.upper() == 'N'):
+                print("Skipping...")
+                return None
+                break
+            if(ans.upper() == 'Y'):
+                print("Proceeding with the whole sequence...")
+                itsStartPosition = 0
+                its_region = seq[itsStartPosition:]
+            else:
+                print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
     else:    
         itsStartPosition = re.search("CCTCCTT", seq).start() + 7
-        its_region = seq[itsStartPosition:]
+    
+    its_region = seq[itsStartPosition:]
     
     motifs["ITS"] = [0, len(its_region)-1, its_region, len(its_region)] #store the whole ITS region to be used as a reference.
      
