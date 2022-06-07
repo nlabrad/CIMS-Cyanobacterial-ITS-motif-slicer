@@ -31,8 +31,12 @@ def parse_fasta(fasta):
         else:
             for key in motifs:
                 if(motifs[key] == None):
-                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " - Not found")
-                    print("\n")
+                    if (key == "tRNA1" or key == "tRNA2"):
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
+                        print("\n")  
+                    else:  
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
+                        print("\n")
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
 
