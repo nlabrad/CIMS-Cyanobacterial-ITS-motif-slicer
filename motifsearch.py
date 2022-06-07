@@ -9,7 +9,8 @@ colorama.init(autoreset=True)
 
 # Gets a sequence from genbank
 def parse_genbank(accession): #fetch sequence and taxonomy with accession#
-    Entrez.email = 'nlab@fastmail.com' # email reported to entrez to associate with the query
+    email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+    Entrez.email = email # email reported to entrez to associate with the query
     with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
         seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
         motifs = findMotifs(str(seq_record.seq))
