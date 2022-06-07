@@ -46,7 +46,11 @@ def findMotifs(seq): #Find the motifs
 
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, get rid of what's before that.
-    if(re.search("CCTCCTT", seq) == None):
+    its_search = re.search("CCTCCTT", seq)
+    if (len(its_search) < 20):
+        its_search = None
+        
+    if(its_search == None):
         ans = ''
         while not (ans=='N'or ans=='Y'):
             print(Back.RED + Fore.WHITE + "Could not find the end of 16S to determine the ITS region boundaries.")
