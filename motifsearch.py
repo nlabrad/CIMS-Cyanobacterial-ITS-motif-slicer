@@ -1,5 +1,7 @@
-import re, sys, argparse
+import re, sys, argparse, colorama
 from Bio import Entrez, __version__, SeqIO #import the required libraries
+from colorama import Fore, Back, Style
+colorama.init(autoreset=True)
 
 #TODO: add logging.
 #TODO: handle not having an argument after the option -f or -g
@@ -21,57 +23,53 @@ def fetch_genbank(accession): #fetch sequence and taxonomy with accession#
 # Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta):
     for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
-        print("Organism name: ", seq_record.id)
-        its_sequence = extractITS(str(seq_record.seq))
-        if(extractITS == "None"):
-            print("No ITS region found in this sequence")
+        print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
+        print("\n")
+        motifs = findMotifs(str(seq_record.seq))
+        if(motifs == "None"):
+            print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
         else:
-            # print("\nITS Region sequence: ", its_sequence)
-            print("\nITS Region length: ", len(its_sequence))
-            motifs = findMotifs(its_sequence)
-            print("Motif  |   [ Start, End, Sequence, Lenght] \n")
             for key in motifs:
                 if(motifs[key] == None):
-                    print(key, ": Not found\n")
+                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " - Not found")
+                    print("\n")
                 else:
-                    print(key, ': ', motifs[key],'\n')
-            print('------------------------------------------------------------------------------------\n')
+                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
 
-#Extraction of ITS region from a 16S-23S region.
-# Find CCTCCTT, get rid of what's before that.
-def extractITS(geneRegion):
-    if(re.search("CCTCCTT", geneRegion) == None):
-        print("ITS Region not found in this sequence")
-        return None
-    else:    
-        itsStartPosition = re.search("CCTCCTT", geneRegion).start() + 7
-        itsseq = geneRegion[itsStartPosition:]
-        return itsseq
 
 #Motifs reference:
 # Motifs["key"] = {'ITS': its region
 #                  'motifName': [start_position, end_position, sequence_string, length]}
 
-def findMotifs(its_region): #Find the motifs
+def findMotifs(seq): #Find the motifs
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
-    
-    motifs["ITS"] = its_region #store the whole ITS region to be used as a reference.
     index_shift = 0
+
+    #Extraction of ITS region from a 16S-23S region.
+    # Find CCTCCTT, get rid of what's before that.
+    if(re.search("CCTCCTT", seq) == None):
+        return None
+    else:    
+        itsStartPosition = re.search("CCTCCTT", seq).start() + 7
+        its_region = seq[itsStartPosition:]
     
+    motifs["ITS"] = [0, len(its_region)-1, its_region, len(its_region)] #store the whole ITS region to be used as a reference.
+     
     d1d1Search = re.search(r"GACCT(.*?)AGGTC", its_region) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
     if (d1d1Search == None): 
         d1d1Search = re.search(r"GACCA(.*?)[AT]GGTC",its_region) 
     if (d1d1Search == None): 
         d1d1Search = re.search(r"GACCG(.*?)CGGTC",its_region)
     if (d1d1Search == None):
-            d1d1Search = None
+            motifs["leader"] = None
+            motifs["d1d1"] = None
     else: 
         motifs["leader"] = [0,d1d1Search.start()] #start-end positions relative to the ITS region
-        motifs["leader"].append(motifs["ITS"][motifs["leader"][0]:motifs["leader"][1]]) #The sequence string of the motif
+        motifs["leader"].append(motifs["ITS"][2][motifs["leader"][0]:motifs["leader"][1]]) #The sequence string of the motif
         motifs["leader"].append(len(motifs["leader"][2])) #The length of the motif
         
         motifs["d1d1"] = [d1d1Search.start(),d1d1Search.end()] #[0] = start, [1] = end
-        motifs["d1d1"].append(motifs["ITS"][motifs["d1d1"][0]:motifs["d1d1"][1]]) #[2] = sequence string
+        motifs["d1d1"].append(motifs["ITS"][2][motifs["d1d1"][0]:motifs["d1d1"][1]]) #[2] = sequence string
         motifs["d1d1"].append(len(motifs["d1d1"][2])) #[3] = lenght
         
         index_shift = d1d1Search.end() #count of processed characters. Used to keep track of absolute position in the index.
@@ -84,11 +82,11 @@ def findMotifs(its_region): #Find the motifs
         motifs["tRNA1"] = None
     else:  
         motifs["sp_d2d3_sp"] = [d1d1Search.end(), tRNA1Search.start()+index_shift]
-        motifs["sp_d2d3_sp"].append(motifs["ITS"][motifs["sp_d2d3_sp"][0]:motifs["sp_d2d3_sp"][1]])
+        motifs["sp_d2d3_sp"].append(motifs["ITS"][2][motifs["sp_d2d3_sp"][0]:motifs["sp_d2d3_sp"][1]])
         motifs["sp_d2d3_sp"].append(len(motifs["sp_d2d3_sp"][2]))
         
         motifs["tRNA1"] = [tRNA1Search.start()+index_shift, tRNA1Search.end()+index_shift]
-        motifs["tRNA1"].append(motifs["ITS"][motifs["tRNA1"][0]:motifs["tRNA1"][1]])
+        motifs["tRNA1"].append(motifs["ITS"][2][motifs["tRNA1"][0]:motifs["tRNA1"][1]])
         motifs["tRNA1"].append(len(motifs["tRNA1"][2]))
                         
         index_shift = index_shift + tRNA1Search.end() #add to the index_shift what will be trimmed in the next line
@@ -102,7 +100,7 @@ def findMotifs(its_region): #Find the motifs
         motifs["tRNA2"] = None
     else: 
         motifs["tRNA2"] = [tRNA2Search.start()+index_shift, tRNA2Search.end()+index_shift]
-        motifs["tRNA2"].append(motifs["ITS"][motifs["tRNA2"][0]:motifs["tRNA2"][1]])
+        motifs["tRNA2"].append(motifs["ITS"][2][motifs["tRNA2"][0]:motifs["tRNA2"][1]])
         motifs["tRNA2"].append(len(motifs["tRNA2"][2])) 
         
         index_shift = index_shift + tRNA2Search.end()
@@ -114,7 +112,7 @@ def findMotifs(its_region): #Find the motifs
         motifs["BoxB"] = None
     else:        
         motifs["BoxB"] = [BoxBSearch.start()+index_shift, BoxBSearch.end()+index_shift]
-        motifs["BoxB"].append(motifs["ITS"][motifs["BoxB"][0]:motifs["BoxB"][1]])
+        motifs["BoxB"].append(motifs["ITS"][2][motifs["BoxB"][0]:motifs["BoxB"][1]])
         motifs["BoxB"].append(len(motifs["BoxB"][2]))
         index_shift = index_shift + BoxBSearch.end()
         its_region = its_region[BoxBSearch.end():] #trim remaining its region
@@ -125,7 +123,7 @@ def findMotifs(its_region): #Find the motifs
         motifs["BoxA"] = None
     else:  
         motifs["BoxA"] = [BoxASearch.start()+index_shift, BoxASearch.end()- 3 +index_shift] #-3 to exclude ACT
-        motifs["BoxA"].append(motifs["ITS"][motifs["BoxA"][0]:motifs["BoxA"][1]])
+        motifs["BoxA"].append(motifs["ITS"][2][motifs["BoxA"][0]:motifs["BoxA"][1]])
         motifs["BoxA"].append(len(motifs["BoxA"][2]))
         index_shift = index_shift + BoxASearch.end() - 3
         its_region = its_region[BoxASearch.end() - 3:] #trim remaining its region   
@@ -137,7 +135,7 @@ def findMotifs(its_region): #Find the motifs
         motifs["D4"] = None
     else:  
         motifs["D4"] = [D4Search.start()+index_shift, D4Search.end()+index_shift]
-        motifs["D4"].append(motifs["ITS"][motifs["D4"][0]:motifs["D4"][1]])
+        motifs["D4"].append(motifs["ITS"][2][motifs["D4"][0]:motifs["D4"][1]])
         motifs["D4"].append(len(motifs["D4"][2]))
         index_shift = index_shift + D4Search.end()
         its_region = its_region[D4Search.end():] #trim remaining its region
@@ -148,7 +146,7 @@ def findMotifs(its_region): #Find the motifs
         motifs["v3"] = None
     else:  
         motifs["v3"] = [V3Search.start()+index_shift, V3Search.end()+index_shift]
-        motifs["v3"].append(motifs["ITS"][motifs["v3"][0]:motifs["v3"][1]])
+        motifs["v3"].append(motifs["ITS"][2][motifs["v3"][0]:motifs["v3"][1]])
         motifs["v3"].append(len(motifs["v3"][2]))
         index_shift = index_shift + V3Search.end()
         its_region = its_region[V3Search.end():]
