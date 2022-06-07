@@ -8,17 +8,25 @@ colorama.init(autoreset=True)
 #TODO: handle not finding the file passed.
 
 # Gets a sequence from genbank
-def fetch_genbank(accession): #fetch sequence and taxonomy with accession#
+def parse_genbank(accession): #fetch sequence and taxonomy with accession#
     Entrez.email = 'nlab@fastmail.com' # email reported to entrez to associate with the query
     with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
         seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
-        fasta = (">%s %s\n%s\n" % (
-           seq_record.id,
-           seq_record.description,
-           seq_record.seq))
-        print(fasta)
-    return fasta #pass this to parse_fasta to get sequence
-
+        motifs = findMotifs(str(seq_record.seq))
+        if(motifs == None):
+            print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
+        else:
+            for key in motifs:
+                if(motifs[key] == None):
+                    if (key == "tRNA1" or key == "tRNA2"):
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
+                        print("\n")  
+                    else:  
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
+                        print("\n")
+                else:
+                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
+    return
 
 # Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta):
@@ -39,7 +47,8 @@ def parse_fasta(fasta):
                         print("\n")
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
-
+    return
+    
 def findMotifs(seq): #Find the motifs
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
     index_shift = 0
@@ -209,5 +218,4 @@ if(args.fasta):
     
 if(args.genbank):
     print("Fetching genbank data...")
-    fasta = fetch_genbank(args.genbank)
-    parse_fasta(fasta)
+    parse_genbank(args.genbank)
