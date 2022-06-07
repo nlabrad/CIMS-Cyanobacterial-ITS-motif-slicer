@@ -48,7 +48,7 @@ def findMotifs(seq): #Find the motifs
     # Find CCTCCTT, get rid of what's before that.
     its_seq_search = re.search(r"CCTCCTT", seq)
     if (len(seq[its_seq_search.start():]) < 20):
-            print (Back.RED + Fore.White + "Region length too short. Skipped.")
+            print (Back.RED + Fore.WHITE + "Region length too short. Skipped.")
             return None
     
     if ((its_seq_search == None)):
