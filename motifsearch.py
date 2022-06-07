@@ -47,8 +47,11 @@ def findMotifs(seq): #Find the motifs
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, get rid of what's before that.
     its_seq_search = re.search(r"CCTCCTT", seq)
+    if (len(seq[its_seq_search.start():]) < 20):
+            print (Back.RED + Fore.White + "Region length too short. Skipped.")
+            return None
     
-    if ((its_seq_search == None) or (len(seq[its_seq_search.start():]) < 20 )):
+    if ((its_seq_search == None)):
         ans = ''
         while not (ans == 'N' or ans == 'Y'):
             print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
