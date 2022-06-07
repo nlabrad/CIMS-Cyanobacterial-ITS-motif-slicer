@@ -26,7 +26,7 @@ def parse_fasta(fasta):
         print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
         print("\n")
         motifs = findMotifs(str(seq_record.seq))
-        if(motifs == "None"):
+        if(motifs == None):
             print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
         else:
             for key in motifs:
@@ -46,27 +46,23 @@ def findMotifs(seq): #Find the motifs
 
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, get rid of what's before that.
-    its_search = re.search("CCTCCTT", seq)
-    if (len(its_search) < 20):
-        its_search = None
-        
-    if(its_search == None):
+    its_seq_search = re.search(r"CCTCCTT", seq)
+    
+    if ((its_seq_search == None) or (len(seq[its_seq_search.start():]) < 20 )):
         ans = ''
-        while not (ans=='N'or ans=='Y'):
-            print(Back.RED + Fore.WHITE + "Could not find the end of 16S to determine the ITS region boundaries.")
-            ans = input("Proceed with search anyway? (Y/N)")
-            if (ans.upper() == 'N'):
-                print("Skipping...")
-                return None
-                break
-            if(ans.upper() == 'Y'):
-                print("Proceeding with the whole sequence...")
+        while not (ans == 'N' or ans == 'Y'):
+            print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
+            ans = input(Fore.RED + "Proceed with search anyway? (Y/N)").upper()
+            if(ans == 'Y'):
+                print("Proceeding with the whole sequence...\n")
                 itsStartPosition = 0
-                its_region = seq[itsStartPosition:]
+            if (ans == 'N'):
+                print("Skipping this organism.\n")
+                return None
             else:
                 print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
-    else:    
-        itsStartPosition = re.search("CCTCCTT", seq).start() + 7
+    else:
+        itsStartPosition = re.search("CCTCCTT", seq).start() + 7 #If it's >20
     
     its_region = seq[itsStartPosition:]
     
