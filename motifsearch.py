@@ -276,7 +276,6 @@ if(args.genbank):
         print("Invalid email, try again: ")
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
         valid_email = check_email(email)
-    
     for gb in args.genbank:           
         print("Fetching genbank data...")
         try:
