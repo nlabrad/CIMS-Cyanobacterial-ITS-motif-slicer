@@ -225,9 +225,9 @@ group.add_argument('-f',
                    )
 group.add_argument('-g', 
                    '--genbank', 
-                   help = "Fetch a sequence from a given genbank accession number."
+                   help = "Fetch a sequence from a given genbank accession number.",
+                   nargs='+',
                    )
-
 #Add standalone argument
 # parser.add_argument('-H', 
 #                     '--html',  
@@ -277,12 +277,13 @@ if(args.genbank):
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
         valid_email = check_email(email)
     
-    print("Fetching genbank data...")
-    try:
-        parse_genbank(args.genbank, email)
-    except:
-        print("Error parsing that accession number. Exiting.")
-        exit()
+    for gb in args.genbank:           
+        print("Fetching genbank data...")
+        try:
+            parse_genbank(gb, email)
+        except:
+            print("Error parsing that accession number. Exiting.")
+            exit()
 
 # if(args.html):
 #     generate_html(args.html, args.motif)
