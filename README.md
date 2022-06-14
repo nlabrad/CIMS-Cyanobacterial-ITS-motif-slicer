@@ -6,6 +6,10 @@ Install Python 3 in whatever environment you're in.
 
 In MacOS, the default Python version is Python 2.7 but it's old and won't work. You still need to download Python 3.
 
+Install in Mac: https://lmgtfy.app/?q=How+to+install+python3+on+mac
+
+Install in Windows: https://lmgtfy.app/?q=How+to+install+python+3+on+windows
+
 ## Install dependencies
 
 ### MacOS/Linux:
