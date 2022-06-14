@@ -1,5 +1,5 @@
 import re, sys, argparse, colorama
-from Bio import Entrez, __version__, SeqIO #import the required libraries
+from Bio import Entrez, SeqIO #import the required libraries
 from colorama import Fore, Back, Style
 colorama.init(autoreset=True)
 
@@ -8,8 +8,7 @@ colorama.init(autoreset=True)
 #TODO: handle not finding the file passed.
 
 # Gets a sequence from genbank
-def parse_genbank(accession): #fetch sequence and taxonomy with accession#
-    email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+def parse_genbank(accession, email): #fetch sequence and taxonomy with accession#
     Entrez.email = email # email reported to entrez to associate with the query
     with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
         seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
@@ -28,6 +27,7 @@ def parse_genbank(accession): #fetch sequence and taxonomy with accession#
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
     return
+
 
 # Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta):
@@ -145,12 +145,14 @@ def findMotifs(seq): #Find the motifs
         its_region = its_region[BoxBSearch.end():] #trim remaining its region
         
     #find Box-A
-    BoxASearch = re.search(r"G[CA]A(.*?)G[AG]AAACT",its_region) #TODO: make it search backwards from ACT and find the first pattern matched.
+    #Old version
+    #BoxASearch = re.search(r"G[CA]A(.*?)G[AG]AAACT",its_region) #TODO: make it search backwards from ACT and find the first pattern matched.
+    BoxASearch = re.search(r"TCAAA[GA]G(.*?)A[AC]G", its_region[::-1]) #BoxASearch[0] includes the string reversed.
     if (BoxASearch == None):
         motifs["BoxA"] = None
-    else:  
+    else: 
         motifs["BoxA"] = [BoxASearch.start()+index_shift, BoxASearch.end()- 3 +index_shift] #-3 to exclude ACT
-        motifs["BoxA"].append(motifs["ITS"][2][motifs["BoxA"][0]:motifs["BoxA"][1]])
+        motifs["BoxA"].append(BoxASearch[0][::-1]) #[0] is the string of the result, [::-1] reverses it.
         motifs["BoxA"].append(len(motifs["BoxA"][2]))
         index_shift = index_shift + BoxASearch.end() - 3
         its_region = its_region[BoxASearch.end() - 3:] #trim remaining its region   
@@ -181,6 +183,29 @@ def findMotifs(seq): #Find the motifs
     return motifs
     # end of extractMotif
    
+def generate_html(file, motifs):
+    f = open(file, 'w')
+    html_header = """
+    <html>
+        <head>
+        <title>Motif Search Results</title>
+        <head>
+        
+        <body>
+        <h1> Motif Search Results </h1>"""
+    
+    html_footer = """
+    </body>
+    </html>"""
+    
+    f.write(html_header)
+       
+    html_body = """
+    <p>Test</p>
+    """
+    f.write(html_body)
+    f.write(html_footer)
+    f.close()
    
 # If -g then run fetch then parse_fasta, 
 # If -f then just run parse_fasta
@@ -192,11 +217,31 @@ parser = argparse.ArgumentParser(description = "Find motifs within Cyanobacteria
 group = parser.add_mutually_exclusive_group()
 
 #Add arguments to group
-group.add_argument('-f', '--fasta', action="store", help = "Find motifs in a given fasta file.")
-group.add_argument('-g', '--genbank', help = "Fetch a sequence from a given genbank accession number.")
+group.add_argument('-f', 
+                   '--fasta', 
+                   action = "store", 
+                   help = "Find motifs in a given fasta file.",
+                #    type = argparse.FileType('r'),
+                   )
+group.add_argument('-g', 
+                   '--genbank', 
+                   help = "Fetch a sequence from a given genbank accession number."
+                   )
 
 #Add standalone argument
-parser.add_argument('-H', '--html', help = "Create an HTML file with the motifs highlighted over the whole sequence.")
+# parser.add_argument('-H', 
+#                     '--html',  
+#                     help = "Outputs an HTML file with motifs highlighted over the ITS sequences. Optional: supply a filename after the flag. Default: its_output.html",
+#                     default = "its_output.html",
+#                     type = "str",
+#                     )
+parser.add_argument('-m',
+                    '--motif',
+                    help = "Select which motifs to extract",
+                    default = "all",
+                    nargs="*", #Expects 0 or more values, if none, then default applies.
+                    choices=('leader', 'd1d1', 'v2', 'trna1', 'trna2', 'boxa', 'boxb', 'd4', 'v3', 'all')
+                    )
 
 #If there is no argument then print the help
 if len(sys.argv) == 1:
@@ -205,6 +250,13 @@ if len(sys.argv) == 1:
 
 #Parse the arguments, store them in args.
 args = parser.parse_args()
+
+def check_email(email):
+    valid_email_format = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if(re.fullmatch(valid_email_format, email)):
+        return True
+    else:
+        return False
     
 if(args.fasta):
     #TODO: make sure the file exists.
@@ -218,5 +270,23 @@ if(args.fasta):
         exit() 
     
 if(args.genbank):
+    email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+    valid_email = check_email(email)
+    while (not valid_email):
+        print("Invalid email, try again: ")
+        email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+        valid_email = check_email(email)
+    
     print("Fetching genbank data...")
-    parse_genbank(args.genbank)
+    try:
+        parse_genbank(args.genbank, email)
+    except:
+        print("Error parsing that accession number. Exiting.")
+        exit()
+
+# if(args.html):
+#     generate_html(args.html, args.motif)
+    
+    
+
+    
