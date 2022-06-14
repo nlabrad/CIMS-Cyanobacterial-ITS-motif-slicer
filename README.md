@@ -1,4 +1,4 @@
-# motifsearch
+# The Motif Deli (?)
 
 Pre-Requirements:
 
