@@ -47,7 +47,9 @@ def parse_fasta(fasta):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
                         print("\n")
                 else:
-                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
+                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
+                          Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
+                          Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")
     return
     
 def findMotifs(seq_input): #Find the motifs
@@ -84,7 +86,8 @@ def findMotifs(seq_input): #Find the motifs
     its_seq = seq_input[its_start_position:] 
     
     # MOTIF : SEQUENCE
-    motifs["ITS"] = [its_seq] #store the whole ITS region to be used as a reference.
+    motifs["ITS"] = its_seq #store the whole ITS region to be used as a reference.
+     
      
     d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
     if (d1d1_search_result == None): 
@@ -94,14 +97,10 @@ def findMotifs(seq_input): #Find the motifs
     if (d1d1_search_result == None):
             motifs["leader"] = None
             motifs["d1d1"] = None
-    else: 
-        #motifs["leader"] = [0,d1d1_search_result.start()] #start-end positions relative to the ITS region
-        motifs["leader"] = motifs["ITS"][2][motifs["leader"][0]:motifs["leader"][1]] #The sequence string of the motif
-        #motifs["leader"].append(len(motifs["leader"][2])) #The length of the motif
+    else:
         
-        #motifs["d1d1"] = [d1d1_search_result.start(),d1d1_search_result.end()] #[0] = start, [1] = end
-        motifs["d1d1"] = motifs["ITS"][2][motifs["d1d1"][0]:motifs["d1d1"][1]] #[2] = sequence string
-        #motifs["d1d1"].append(len(motifs["d1d1"][2])) #[3] = lenght
+        motifs["leader"] = motifs["ITS"][0:d1d1_search_result.start()] #The sequence string of the motif
+        motifs["d1d1"] = d1d1_search_result[0] #[0] represents the search result string.
         
         #index_shift = d1d1_search_result.end() #count of processed characters. Used to keep track of absolute position in the index.
         its_seq = its_seq[d1d1_search_result.end():] #trim processed its region to avoid overlapping searches.
@@ -111,30 +110,20 @@ def findMotifs(seq_input): #Find the motifs
     tRNA1Search = re.search(r"GGGC[TC]ATTA(.*?)GGCCCA",its_seq) #find text between basal clamps
     if (tRNA1Search == None):
         motifs["tRNA1"] = None
+        #TODO: what to do with sp_d2d3_sp if tRNA1 is not found.
     else:  
-        #motifs["sp_d2d3_sp"] = [d1d1_search_result.end(), tRNA1Search.start()+index_shift]
-        motifs["sp_d2d3_sp"] = motifs["ITS"][2][motifs["sp_d2d3_sp"][0]:motifs["sp_d2d3_sp"][1]]
-        # motifs["sp_d2d3_sp"].append(len(motifs["sp_d2d3_sp"][2]))
-        
-       #motifs["tRNA1"] = [tRNA1Search.start()+index_shift, tRNA1Search.end()+index_shift]
-        motifs["tRNA1"] = motifs["ITS"][2][motifs["tRNA1"][0]:motifs["tRNA1"][1]]
-       # motifs["tRNA1"].append(len(motifs["tRNA1"][2]))
-                        
-       # index_shift = index_shift + tRNA1Search.end() #add to the index_shift what will be trimmed in the next line
+        # leader and d1d1 were trimmed from its_seq above. The beginning of the remaining string is the start of spacer.
+        motifs["sp_d2d3_sp"] = its_seq[0:tRNA1Search.start()] #Store what is between the end of d1d1 (first char) and the start of tRNA1
+        motifs["tRNA1"] = tRNA1Search[0] #store tRNA1 sequence string found in its_seq                 
         its_seq = its_seq[tRNA1Search.end():] #trim processed its region
-    
-    #TODO: V2 region is between these
     
     #find tRNA-Ala(2)
     tRNA2Search = re.search(r"GGGG(.*?)[TC]CTCCA",its_seq)  #find text between basal clamps
     if (tRNA2Search == None):
         motifs["tRNA2"] = None
     else: 
-       # motifs["tRNA2"] = [tRNA2Search.start()+index_shift, tRNA2Search.end()+index_shift]
-        motifs["tRNA2"] = motifs["ITS"][2][motifs["tRNA2"][0]:motifs["tRNA2"][1]]
-        #motifs["tRNA2"].append(len(motifs["tRNA2"][2])) 
-        
-       # index_shift = index_shift + tRNA2Search.end()
+        motifs["v2"] = its_seq[0:tRNA2Search.start()] #everything between end of tRNA1 and start of tRNA2
+        motifs["tRNA2"] = tRNA2Search[0]
         its_seq = its_seq[tRNA2Search.end():] #trim processed its region
         
     #find BoxB
@@ -142,35 +131,27 @@ def findMotifs(seq_input): #Find the motifs
     if (BoxBSearch == None):
         motifs["BoxB"] = None
     else:        
-        #motifs["BoxB"] = [BoxBSearch.start()+index_shift, BoxBSearch.end()+index_shift]
-        motifs["BoxB"] = motifs["ITS"][2][motifs["BoxB"][0]:motifs["BoxB"][1]]
-       # motifs["BoxB"].append(len(motifs["BoxB"][2]))
-       # index_shift = index_shift + BoxBSearch.end()
+        
+        motifs["BoxB"] = BoxBSearch[0]
         its_seq = its_seq[BoxBSearch.end():] #trim remaining its region
         
     #find Box-A
-    #Old version
-    #BoxASearch = re.search(r"G[CA]A(.*?)G[AG]AAACT",its_region) #TODO: make it search backwards from ACT and find the first pattern matched.
     BoxASearch = re.search(r"TCAAA[GA]G(.*?)A[AC]G", its_seq[::-1]) #BoxASearch[0] includes the string reversed.
     if (BoxASearch == None):
         motifs["BoxA"] = None
     else: 
-        #motifs["BoxA"] = [BoxASearch.start()+index_shift, BoxASearch.end()- 3 +index_shift] #-3 to exclude ACT
         motifs["BoxA"] = BoxASearch[0][::-1] #[0] is the string of the result, [::-1] reverses it.
-        #motifs["BoxA"].append(len(motifs["BoxA"][2]))
-        #index_shift = index_shift + BoxASearch.end() - 3
-        its_seq = its_seq[BoxASearch.end() - 3:] #trim remaining its region   
-    
-    
+        #Search again for string to find the end position.
+         #Since the string was reversed, the end() of the result above can't be used, search for the found string to find the real end position
+        BoxAEndSearch = re.search(motifs["BoxA"], its_seq)
+        its_seq = its_seq[BoxAEndSearch.end() - 3:] #trim remaining its region, leave ACT in the its_seq   
+     
     #find D4  
     D4Search = re.search(r"ACT(.*?)TA[TGAC]",its_seq) #Should be right after the GAA above
     if (D4Search == None):
         motifs["D4"] = None
     else:  
-       # motifs["D4"] = [D4Search.start()+index_shift, D4Search.end()+index_shift]
-        motifs["D4"] = motifs["ITS"][2][motifs["D4"][0]:motifs["D4"][1]]
-      #  motifs["D4"].append(len(motifs["D4"][2]))
-      #  index_shift = index_shift + D4Search.end()
+        motifs["D4"] = D4Search[0]
         its_seq = its_seq[D4Search.end():] #trim remaining its region
         
     #Find v3
@@ -178,10 +159,7 @@ def findMotifs(seq_input): #Find the motifs
     if (V3Search == None):
         motifs["v3"] = None
     else:  
-       # motifs["v3"] = [V3Search.start()+index_shift, V3Search.end()+index_shift]
-        motifs["v3"] = (motifs["ITS"][2][motifs["v3"][0]:motifs["v3"][1]])
-       # motifs["v3"].append(len(motifs["v3"][2]))
-        #index_shift = index_shift + V3Search.end()
+        motifs["v3"] = V3Search[0]
         its_seq = its_seq[V3Search.end():]
         
     return motifs
