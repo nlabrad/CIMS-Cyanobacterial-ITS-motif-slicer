@@ -84,7 +84,7 @@ def findMotifs(seq_input): #Find the motifs
     its_seq = seq_input[its_start_position:] 
     
     # MOTIF : SEQUENCE
-    motifs["its_region"] = [its_seq] #store the whole ITS region to be used as a reference.
+    motifs["ITS"] = [its_seq] #store the whole ITS region to be used as a reference.
      
     d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
     if (d1d1_search_result == None): 
