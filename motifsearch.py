@@ -50,36 +50,39 @@ def parse_fasta(fasta):
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
     return
     
-def findMotifs(seq): #Find the motifs
+def findMotifs(seq_input): #Find the motifs
+    minimum_its_length = 20 #Used to filter out short results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
-    index_shift = 0
+    index_shift = 0 #Used to keep track of motif position relative to the beginning of the ITS sequence.
 
     #Extraction of ITS region from a 16S-23S region.
-    # Find CCTCCTT, get rid of what's before that.
-    its_seq_search = re.search(r"CCTCCTT", seq)
+    # Find CCTCCTT, set ITS start position after that.
+    its_seq_search = re.search(r"CCTCCTT", seq_input)
     
-    if ((its_seq_search == None)):
-        ans = ''
+    #If it cannot find the end of 16S, ask if they want to continue anyway in case they provided the ITS region only.
+    if ((its_seq_search == None)): 
+        ans = '' #Initializes the menu option.
         while not (ans == 'N' or ans == 'Y'):
             print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
             ans = input(Fore.RED + "Proceed with search anyway? (Y/N): ").upper()
             if(ans == 'Y'):
                 print("Proceeding with the whole sequence...\n")
-                itsStartPosition = 0
+                its_start_position = 0
                 break
             if (ans == 'N'):
                 print("Skipping this organism.\n")
                 return None
             else:
                 print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
-    else:
-        if (len(seq[its_seq_search.start():]) < 20 and its_seq_search is not None):
-            print (Back.RED + Fore.WHITE + "Region length too short. Skipped.")
+    else: #If the end of 16S was found, check if the length is too short.
+        if (len(seq_input[its_seq_search.start():]) < minimum_its_length):
+            print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
             return None
-        itsStartPosition = re.search("CCTCCTT", seq).start() + 7 #If it's >20
+        its_start_position = re.search("CCTCCTT", seq_input).start() + 7 #Set the start position.
     
-    its_region = seq[itsStartPosition:]
+    its_region = seq_input[its_start_position:]
     
+    #[start position, end position, sequence, length]
     motifs["ITS"] = [0, len(its_region)-1, its_region, len(its_region)] #store the whole ITS region to be used as a reference.
      
     d1d1Search = re.search(r"GACCT(.*?)AGGTC", its_region) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
@@ -242,6 +245,11 @@ parser.add_argument('-m',
                     nargs="*", #Expects 0 or more values, if none, then default applies.
                     choices=('leader', 'd1d1', 'v2', 'trna1', 'trna2', 'boxa', 'boxb', 'd4', 'v3', 'all')
                     )
+parser.add_argument('-e',
+                    '--email',
+                    help = "Provide email for genbank query. If not provided, you will be prompted for one anyway.",
+                    default = "none",
+)
 
 #If there is no argument then print the help
 if len(sys.argv) == 1:
@@ -270,14 +278,18 @@ if(args.fasta):
         exit() 
     
 if(args.genbank):
-    email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+    if (args.email):
+        email = args.email
+    else:
+        email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+        
     valid_email = check_email(email)
     while (not valid_email):
         print("Invalid email, try again: ")
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
         valid_email = check_email(email)
     for gb in args.genbank:           
-        print("Fetching genbank data...")
+        print("Fetching genbank data from " + gb)
         try:
             parse_genbank(gb, email)
         except:
