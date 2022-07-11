@@ -7,8 +7,9 @@ The 16S-23S internal transcribed spacer (ITS) is a commonly employed phylogeneti
 
 ## What does this software do?
 
-This tool has been created to skim through and find the commonly used ITS folding motifs such as D1D1’ and Box B and both 16s-23s ITS tRNAs to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. The program will return several outputs: 
-    a.	A list of ITS motifs, the corresponding motif sequences, and the motif lengths. In the current version of the software, the motifs included in            the output are:
+This tool has been created to skim through and find the commonly used ITS folding motifs such as D1D1’ and Box B and both 16s-23s ITS tRNAs to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
+
+   ### The program will return a list of ITS motifs, the corresponding motif sequences, and the motif lengths. In the current version of the software, the motifs included in the output are:
                   •	Leader
                   •	D1D1`
                   •	Spacer – D2 – Spacer 
