@@ -4,37 +4,12 @@ from colorama import Fore, Back, Style
 colorama.init(autoreset=True)
 
 #TODO: add logging.
-#TODO: handle not having an argument after the option -f or -g
-#TODO: handle not finding the file passed.
+#TODO: option to create CSV
+#TODO: HTML with highlighted motif text
+#TODO: option to select just one motif from given seq instead of all the motifs.
+#TODO: option to exclude ones without tRNAs, or just include those with both tRNAs
 
-# Gets a sequence from genbank
-def parse_genbank(accession, email): #fetch sequence and taxonomy with accession#
-    Entrez.email = email # email reported to entrez to associate with the query
-    with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
-        seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
-        motifs = findMotifs(str(seq_record.seq))
-        if(motifs == None):
-            print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
-        else:
-            for key in motifs:
-                if(motifs[key] == None):
-                    if (key == "tRNA1" or key == "tRNA2"):
-                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
-                        print("\n")  
-                    else:  
-                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
-                        print("\n")
-                else:
-                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + motifs[key][2] + Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(motifs[key][3]) + "\n")
-    return
-
-
-# Gets sequences from a fasta file. Calls findMotif for each.
-def parse_fasta(fasta):
-    for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
-        print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
-        print("\n")
-        motifs = findMotifs(str(seq_record.seq))
+def print_motifs(motifs):
         if(motifs == None):
             print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
         else:
@@ -49,13 +24,29 @@ def parse_fasta(fasta):
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
                           Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
-                          Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")
+                          Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")    
+# Gets a sequence from genbank
+def parse_genbank(accession, email): #fetch sequence and taxonomy with accession#
+    Entrez.email = email # email reported to entrez to associate with the query
+    with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
+        seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
+        motifs = findMotifs(str(seq_record.seq))
+    return motifs
+
+
+# Gets sequences from a fasta file. Calls findMotif for each.
+def parse_fasta(fasta):
+    for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
+        print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
+        print("\n")
+        motifs = findMotifs(str(seq_record.seq))
+        print_motifs(motifs)
     return
+
+def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called motifs.
     
-def findMotifs(seq_input): #Find the motifs
     minimum_its_length = 20 #Used to filter out short results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
-    index_shift = 0 #Used to keep track of motif position relative to the beginning of the ITS sequence.
 
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, set ITS start position after that.
@@ -63,15 +54,15 @@ def findMotifs(seq_input): #Find the motifs
     
     #If it cannot find the end of 16S, ask if they want to continue anyway in case they provided the ITS region only.
     if ((its_seq_search == None)): 
-        ans = '' #Initializes the menu option.
-        while not (ans == 'N' or ans == 'Y'):
+        menu_option = '' #Initializes the menu option.
+        while not (menu_option == 'N' or menu_option == 'Y'):
             print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
-            ans = input(Fore.RED + "Proceed with search anyway? (Y/N): ").upper()
-            if(ans == 'Y'):
+            menu_option = input(Fore.RED + "Proceed with search anyway? ([Y]/N): ").upper()
+            if(menu_option == 'Y'):
                 print("Proceeding with the whole sequence...\n")
                 its_start_position = 0
                 break
-            if (ans == 'N'):
+            if (menu_option == 'N'):
                 print("Skipping this organism.\n")
                 return None
             else:
@@ -88,7 +79,7 @@ def findMotifs(seq_input): #Find the motifs
     # MOTIF : SEQUENCE
     motifs["ITS"] = its_seq #store the whole ITS region to be used as a reference.
      
-     
+
     d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
     if (d1d1_search_result == None): 
         d1d1_search_result = re.search(r"GACCA(.*?)[AT]GGTC",its_seq) 
@@ -97,8 +88,7 @@ def findMotifs(seq_input): #Find the motifs
     if (d1d1_search_result == None):
             motifs["leader"] = None
             motifs["d1d1"] = None
-    else:
-        
+    else: 
         motifs["leader"] = motifs["ITS"][0:d1d1_search_result.start()] #The sequence string of the motif
         motifs["d1d1"] = d1d1_search_result[0] #[0] represents the search result string.
         
@@ -127,7 +117,7 @@ def findMotifs(seq_input): #Find the motifs
         its_seq = its_seq[tRNA2Search.end():] #trim processed its region
         
     #find BoxB
-    BoxBSearch = re.search(r"[TC]AGCA[AC](.*?)TGCT[AG]", its_seq) #find text between basal clamps
+    BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
     if (BoxBSearch == None):
         motifs["BoxB"] = None
     else:        
@@ -210,7 +200,7 @@ group.add_argument('-g',
                    help = "Fetch a sequence from a given genbank accession number.",
                    nargs='+',
                    )
-#Add standalone argument
+# Adds standalone arguments
 # parser.add_argument('-H', 
 #                     '--html',  
 #                     help = "Outputs an HTML file with motifs highlighted over the ITS sequences. Optional: supply a filename after the flag. Default: its_output.html",
@@ -253,7 +243,7 @@ if(args.fasta):
         parse_fasta(fasta)
         exit()
     except IOError:
-        print ("File not found")
+        print ("File not found.")
         exit() 
     
 if(args.genbank):
@@ -270,7 +260,8 @@ if(args.genbank):
     for gb in args.genbank:           
         print("Fetching genbank data from " + gb)
         try:
-            parse_genbank(gb, email)
+            motifs = parse_genbank(gb, email)
+            print_motifs(motifs)
         except:
             print("Error parsing that accession number. Exiting.")
             exit()
