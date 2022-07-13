@@ -47,31 +47,36 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
     
     minimum_its_length = 20 #Used to filter out short results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
+    pico_cyano_flag = 0 #Used to identify picocyano d1d1 starts.
 
     #Extraction of ITS region from a 16S-23S region.
     # Find CCTCCTT, set ITS start position after that.
     its_seq_search = re.search(r"CCTCCTT", seq_input)
-    
+    if (its_seq_search == None):
+        its_seq_search = re.search(r"CCTCCTA", seq_input)
+        pico_cyano_flag = 1
+        
     #If it cannot find the end of 16S, ask if they want to continue anyway in case they provided the ITS region only.
     if ((its_seq_search == None)): 
         menu_option = '' #Initializes the menu option.
-        while not (menu_option == 'N' or menu_option == 'Y'):
-            print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
-            menu_option = input(Fore.RED + "Proceed with search anyway? ([Y]/N): ").upper()
-            if(menu_option == 'Y'):
-                print("Proceeding with the whole sequence...\n")
-                its_start_position = 0
-                break
-            if (menu_option == 'N'):
-                print("Skipping this organism.\n")
-                return None
-            else:
-                print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
+        print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
+        # while not (menu_option == 'N' or menu_option == 'Y'):
+            # print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
+        #     menu_option = input(Fore.RED + "Proceed with search anyway? ([Y]/N): ").upper()
+        #     if(menu_option == 'Y'):
+        #         print("Proceeding with the whole sequence...\n")
+        #         its_start_position = 0
+        #         break
+        #     if (menu_option == 'N'):
+        #         print("Skipping this organism.\n")
+        #         return None
+        #     else:
+        #         print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
     else: #If the end of 16S was found, check if the length is too short.
         if (len(seq_input[its_seq_search.start():]) < minimum_its_length):
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
             return None
-        its_start_position = re.search("CCTCCTT", seq_input).start() + 7 #Set the start position of the 
+        its_start_position = its_seq_search.start() + 7 #Set the start position of the 
     
     #Sequence to be used for the motif search
     its_seq = seq_input[its_start_position:] 
@@ -79,12 +84,14 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
     # MOTIF : SEQUENCE
     motifs["ITS"] = its_seq #store the whole ITS region to be used as a reference.
      
-
-    d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
-    if (d1d1_search_result == None): 
-        d1d1_search_result = re.search(r"GACCA(.*?)[AT]GGTC",its_seq) 
-    if (d1d1_search_result == None): 
-        d1d1_search_result = re.search(r"GACCG(.*?)CGGTC",its_seq)
+    if (pico_cyano_flag == 1):
+        d1d1_search_result = re.search(r"GACAA(.*?)[AT]TGTC", its_seq)
+    else:
+        d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
+        if (d1d1_search_result == None): 
+            d1d1_search_result = re.search(r"GACCA(.*?)[AT]GGTC",its_seq) 
+        if (d1d1_search_result == None): 
+            d1d1_search_result = re.search(r"GACCG(.*?)CGGTC",its_seq)
     if (d1d1_search_result == None):
             motifs["leader"] = None
             motifs["d1d1"] = None
