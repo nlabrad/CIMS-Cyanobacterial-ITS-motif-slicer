@@ -81,9 +81,10 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
     #Sequence to be used for the motif search
     its_seq = seq_input[its_start_position:] 
     
-    # MOTIF : SEQUENCE
+    # NAME : SEQUENCE
     motifs["ITS"] = its_seq #store the whole ITS region to be used as a reference.
      
+    # Change D1D1 start if we are dealing with a picocyano. 
     if (pico_cyano_flag == 1):
         d1d1_search_result = re.search(r"GACAA(.*?)[AT]TGTC", its_seq)
     else:
@@ -124,7 +125,10 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
         its_seq = its_seq[tRNA2Search.end():] #trim processed its region
         
     #find BoxB
-    BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
+    if (pico_cyano_flag == 1):
+        BoxBSearch = re.search(r"CAGC(.*?)GCTG", its_seq) #search for this is if's a pico
+    else:
+        BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
     if (BoxBSearch == None):
         motifs["BoxB"] = None
     else:        
