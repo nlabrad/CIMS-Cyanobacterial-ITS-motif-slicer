@@ -1,4 +1,5 @@
-import re, sys, argparse, colorama
+from asyncore import file_dispatcher
+import re, sys, argparse, colorama, json
 from Bio import Entrez, SeqIO #import the required libraries
 from colorama import Fore, Back, Style
 colorama.init(autoreset=True)
@@ -9,6 +10,12 @@ colorama.init(autoreset=True)
 #TODO: option to select just one motif from given seq instead of all the motifs.
 #TODO: option to exclude ones without tRNAs, or alternatively, just include those with both tRNAs
 
+def generate_json(dict):
+    jsonString = json.dumps(motifs, indent=3)
+    file = open("motifs.json", "w")
+    file.write(jsonString)
+    file.close()
+    
 def print_motifs(motifs):
         if(motifs == None):
             print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
@@ -38,7 +45,7 @@ def parse_fasta(fasta):
         print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
         print("\n")
         motifs = findMotifs(str(seq_record.seq))
-        print_motifs(motifs)
+        return motifs
     return
 
 # Finds all the possible D1D1 sequences. Gets the start and end patterns from the main program.
@@ -188,29 +195,6 @@ def findMotifs(seq_input):
     return motifs
     # end of extractMotif
    
-def generate_html(file, motifs):
-    f = open(file, 'w')
-    html_header = """
-    <html>
-        <head>
-        <title>Motif Search Results</title>
-        <head>
-        
-        <body>
-        <h1> Motif Search Results </h1>"""
-    
-    html_footer = """
-    </body>
-    </html>"""
-    
-    f.write(html_header)
-       
-    html_body = """
-    <p>Test</p>
-    """
-    f.write(html_body)
-    f.write(html_footer)
-    f.close()
    
 # If -g then run fetch then parse_fasta, 
 # If -f then just run parse_fasta
@@ -273,24 +257,26 @@ if(args.fasta):
     try:
         fasta = open(args.fasta, "r")
         print("Processing fasta file...")
-        parse_fasta(fasta)
+        motifs = parse_fasta(fasta)
+        print_motifs(motifs)
+        generate_json(motifs)
         exit()
     except IOError:
         print ("File not found.")
         exit() 
     
 if(args.genbank):
+    #Get email to send to Entrez. Either from argument or ask the user for input
     if (args.email):
         email = args.email
     else:
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
-        
-    valid_email = check_email(email)
-    while (not valid_email):
+    #Check that the email is valid. 
+    while (not check_email(email)):
         print("Invalid email, try again: ")
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
-        valid_email = check_email(email)
-    for gb in args.genbank:           
+        
+    for gb in args.genbank:
         print("Fetching genbank data from " + gb)
         try:
             motifs = parse_genbank(gb, email)
