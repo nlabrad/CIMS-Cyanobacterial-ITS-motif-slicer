@@ -7,7 +7,7 @@ colorama.init(autoreset=True)
 #TODO: option to create CSV
 #TODO: HTML with highlighted motif text
 #TODO: option to select just one motif from given seq instead of all the motifs.
-#TODO: option to exclude ones without tRNAs, or just include those with both tRNAs
+#TODO: option to exclude ones without tRNAs, or alternatively, just include those with both tRNAs
 
 def print_motifs(motifs):
         if(motifs == None):
@@ -32,8 +32,6 @@ def parse_genbank(accession, email): #fetch sequence and taxonomy with accession
         seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
         motifs = findMotifs(str(seq_record.seq))
     return motifs
-
-
 # Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta):
     for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
@@ -43,13 +41,38 @@ def parse_fasta(fasta):
         print_motifs(motifs)
     return
 
-def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called motifs.
+# Finds all the possible D1D1 sequences. Gets the start and end patterns from the main program.
+
+#Function gets the start pattern, the end pattern, and the full sequence.
+def get_d1d1(start, end, seq):
+    
+    # Limits the area in which the d1d1 region is found, usually.
+    d1d1_search_area = seq[0:150]
+    # Find where the starting pattern is at. Limit to the first 20 bases.
+    d1d1_start_position = d1d1_search_area.find(start, 0, 20)
+    
+    #If the start position is not found, return None to the main program
+    if (d1d1_start_position == -1):
+        return None
+    # But if it is found, try searching for the end pattern.
+    else:
+        #Find all the matching bases to the pattern in the argument passed to the function (end)
+        end_matches = re.finditer(end, d1d1_search_area)
+        d1d1_results = []
+        #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
+        for match in end_matches:
+            d1d1_results.append(seq[d1d1_start_position:match.end()])
+            #d1d1_results.append((d1d1_start_position,match.end()))
+        #return it back to the program.
+        return d1d1_results
+# returns a dictionary where each key is a motif and the value is the possible motifs.
+def findMotifs(seq_input):
     
     minimum_its_length = 20 #Used to filter out short results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
     pico_cyano_flag = 0 #Used to identify picocyano d1d1 starts.
 
-    #Extraction of ITS region from a 16S-23S region.
+    #Extracting only the ITS region from a 16S-23S region.
     # Find CCTCCTT, set ITS start position after that.
     its_seq_search = re.search(r"CCTCCTT", seq_input)
     if (its_seq_search == None):
@@ -60,18 +83,7 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
     if ((its_seq_search == None)): 
         menu_option = '' #Initializes the menu option.
         print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
-        # while not (menu_option == 'N' or menu_option == 'Y'):
-            # print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries.")
-        #     menu_option = input(Fore.RED + "Proceed with search anyway? ([Y]/N): ").upper()
-        #     if(menu_option == 'Y'):
-        #         print("Proceeding with the whole sequence...\n")
-        #         its_start_position = 0
-        #         break
-        #     if (menu_option == 'N'):
-        #         print("Skipping this organism.\n")
-        #         return None
-        #     else:
-        #         print(Fore.RED + "Invalid option. Valid Options: Y or N\n")
+        its_start_position = 0
     else: #If the end of 16S was found, check if the length is too short.
         if (len(seq_input[its_seq_search.start():]) < minimum_its_length):
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
@@ -86,22 +98,32 @@ def findMotifs(seq_input): #Find the motifs, stores them in a dictionary called 
      
     # Change D1D1 start if we are dealing with a picocyano. 
     if (pico_cyano_flag == 1):
-        d1d1_search_result = re.search(r"GACAA(.*?)[AT]TGTC", its_seq)
+        d1d1_results = get_d1d1("GACAA", r"[AT]TGTC", its_seq)
     else:
-        d1d1_search_result = re.search(r"GACCT(.*?)AGGTC", its_seq) #find text between basal clamps, starting with GACCT/C to the first AGGTC (*? is lazy search)
-        if (d1d1_search_result == None): 
-            d1d1_search_result = re.search(r"GACCA(.*?)[AT]GGTC",its_seq) 
-        if (d1d1_search_result == None): 
-            d1d1_search_result = re.search(r"GACCG(.*?)CGGTC",its_seq)
-    if (d1d1_search_result == None):
+        d1d1_results = get_d1d1("GACCT", r"AGGTC", its_seq)
+        if (d1d1_results == None):
+            d1d1_results = get_d1d1("GACCA", r"[AT]GGTC", its_seq)
+        if (d1d1_results == None): 
+            d1d1_results = get_d1d1("GACCG", r"[AC]GGTC", its_seq)
+    
+    if (d1d1_results == None):
             motifs["leader"] = None
             motifs["d1d1"] = None
+    #get_d1d1 returns an array with as many sequences as it found.
     else: 
-        motifs["leader"] = motifs["ITS"][0:d1d1_search_result.start()] #The sequence string of the motif
-        motifs["d1d1"] = d1d1_search_result[0] #[0] represents the search result string.
+        #get the starting index of the d1d1
+        leader_start = its_seq.find(d1d1_results[0])
+        #use the above to define where leader ends (start of d1d1)
+        motifs["leader"] = its_seq[0:leader_start] #The sequence string of the motif
+        #create an empty list for the d1d1 results
+        motifs["d1d1"] = []
+        #Append the d1d1 results to the d1d1 key, as an array.
+        for seq in d1d1_results:
+            motifs["d1d1"].append(seq)
         
-        #index_shift = d1d1_search_result.end() #count of processed characters. Used to keep track of absolute position in the index.
-        its_seq = its_seq[d1d1_search_result.end():] #trim processed its region to avoid overlapping searches.
+        #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of d1d1. use [-1] to pick the 
+        # longest d1d1 result (the last one found, latest index of the d1d1 list)
+        its_seq = its_seq[its_seq.rindex(motifs["d1d1"][-1]):] #trim processed its region to avoid overlapping searches.
     
     
     # spacer-D2-spacer D3-spacer regionand  tRNA-Ile(1)
