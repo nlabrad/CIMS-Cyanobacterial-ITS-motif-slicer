@@ -32,7 +32,9 @@ def print_motifs(motifs):
                     print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
                           Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
                           Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")    
-# Gets a sequence from genbank
+
+# Gets the specified sequence from genbank to process.
+
 def parse_genbank(accession, email): #fetch sequence and taxonomy with accession#
     Entrez.email = email # email reported to entrez to associate with the query
     with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
@@ -41,12 +43,14 @@ def parse_genbank(accession, email): #fetch sequence and taxonomy with accession
     return motifs
 # Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta):
+    all_motifs = []
     for seq_record in SeqIO.parse(fasta, "fasta"): #for each entry do the below.
         print(Fore.LIGHTGREEN_EX + "\nOrganism name: " + seq_record.id + ":")
         print("\n")
-        motifs = findMotifs(str(seq_record.seq))
-        return motifs
-    return
+        motifs = findMotifs(str(seq_record.seq), seq_record.id)
+        all_motifs.append(motifs)
+        print_motifs(motifs)
+    return all_motifs
 
 # Finds all the possible D1D1 sequences. Gets the start and end patterns from the main program.
 
@@ -73,7 +77,7 @@ def get_d1d1(start, end, seq):
         #return it back to the program.
         return d1d1_results
 # returns a dictionary where each key is a motif and the value is the possible motifs.
-def findMotifs(seq_input):
+def findMotifs(seq_input, organism_name):
     
     minimum_its_length = 20 #Used to filter out short results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
@@ -101,7 +105,7 @@ def findMotifs(seq_input):
     its_seq = seq_input[its_start_position:] 
     
     # NAME : SEQUENCE
-    motifs["ITS"] = its_seq #store the whole ITS region to be used as a reference.
+    motifs[organism_name] = its_seq #store the whole ITS region to be used as a reference.
      
     # Change D1D1 start if we are dealing with a picocyano. 
     if (pico_cyano_flag == 1):
@@ -201,10 +205,8 @@ def findMotifs(seq_input):
 
 # Create the parser    
 parser = argparse.ArgumentParser(description = "Find motifs within Cyanobacteria ITS region sequences")
-
 #Create a group of mutually exclusive argument options
 group = parser.add_mutually_exclusive_group()
-
 #Add arguments to group
 group.add_argument('-f', 
                    '--fasta', 
@@ -237,6 +239,7 @@ parser.add_argument('-e',
                     default = "none",
 )
 
+#Process the arguments
 #If there is no argument then print the help
 if len(sys.argv) == 1:
     parser.print_help()
@@ -258,7 +261,6 @@ if(args.fasta):
         fasta = open(args.fasta, "r")
         print("Processing fasta file...")
         motifs = parse_fasta(fasta)
-        print_motifs(motifs)
         generate_json(motifs)
         exit()
     except IOError:
