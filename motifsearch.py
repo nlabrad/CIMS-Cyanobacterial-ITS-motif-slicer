@@ -21,6 +21,7 @@ def print_motifs(motifs):
             print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
         else:
             for key in motifs:
+                motif_count = 1
                 if(motifs[key] == None):
                     if (key == "tRNA1" or key == "tRNA2"):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
@@ -29,9 +30,16 @@ def print_motifs(motifs):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
                         print("\n")
                 else:
-                    print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
-                          Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
-                          Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")    
+                    if key == 'd1d1':
+                        for item in motifs[key]:
+                            print(Fore.CYAN + Style.BRIGHT + key + '-' + str(motif_count) + "\n" + 
+                                Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                            motif_count = motif_count + 1
+                    else:
+                        print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
+                            Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
+                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(motifs[key])) + "\n")    
 
 # Gets the specified sequence from genbank to process.
 
