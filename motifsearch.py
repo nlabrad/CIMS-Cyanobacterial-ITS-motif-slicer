@@ -1,4 +1,3 @@
-from asyncore import file_dispatcher
 import re, sys, argparse, colorama, json
 from Bio import Entrez, SeqIO #import the required libraries
 from colorama import Fore, Back, Style
@@ -87,7 +86,7 @@ def get_d1d1(start, end, seq):
 # returns a dictionary where each key is a motif and the value is the possible motifs.
 def findMotifs(seq_input, organism_name):
     
-    minimum_its_length = 20 #Used to filter out short results.
+    minimum_its_length = 20 #Used to filter out bad results.
     motifs = {} #dictionary. motifs[motif-name]=[start-position,end-position, sequence, length]
     pico_cyano_flag = 0 #Used to identify picocyano d1d1 starts.
 
