@@ -1,6 +1,49 @@
 # The Motif Deli (?)
 
-Pre-Requirements:
+## What are ITS motifs used for? 
+
+The 16S-23S internal transcribed spacer (ITS) is a commonly employed phylogenetic marker. Cyanobacteria have been around for billions of years however, describing their evolutionary relationships has always been a challenge (Vachard 2021). A polyphasic approach has become crucial to identify and describe cyanobacterial relationships accurately. This multi-faceted approach allows researchers to circumvent issues associated with phenotypic plasticity, cryptic diversity, and character scarceness (e.g., Casamatta et al. 2005; Johansen & Casamatta 2005; Mai et al. 2018). A polyphasic approach often includes 16S rDNA sequence data, ecology, morphology, and more recently, ITS secondary structure analysis. Examination of ITS regions allows researchers to discover congruencies and apomorphies between species of cyanobacteria. This gives the researcher more evidence when erecting a new taxon or analyzing previously unresolved taxonomic relationships. The challenge however is that historically researchers must manually dig through sequence data to visually find and identify ITS sequence motifs. This painstaking process deters researchers from using ITS motifs, leads to errors, and not to mention… causes headaches.
+
+
+## What does this software do?
+
+This tool has been created to skim through and find the commonly used ITS folding motifs such as D1D1’ and Box B and both 16s-23s ITS tRNAs to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
+
+   ### The program will return a list of ITS motifs, the corresponding motif sequences, and the motif lengths. In the current version of the software, the motifs included in the output are:
+                  •	Leader
+                  •	D1D1`
+                  •	Spacer – D2 – Spacer 
+                  •	tRNA-ala
+                  •	Spacer – V2 - Spacer
+                  •	tRNA- ile 
+                  •	Box B 
+                  •	D4
+                  •	BoxA 
+                  •	V3 
+
+## How to use this software: 
+The input for this tool must either be a fasta file with one or more properly formatted 16s-23s ITS sequences or a Genbank accession number to a 16s-23s ITS sequence. When running this on your terminal the output will include all motifs found in the sequences given to the program. If you would like to save the output of your run remember to use “>>” to save output into a text file. 
+
+## Possible errors: 
+
+### 1. “Could not find the end of 16S to determine the ITS region boundaries”  ```
+This error means that the sequence given to the software did not contain the sequence that represents the end of the 16S region (CCTCCTT). You        may proceed with the run if you have fed the program the ITS region only and everything will run as normal otherwise, abort the run for that            sequence by typing “N” when prompted “Proceed with search anyway? (Y/N)”. This will allow the program to move onto the next sequence in the fasta        file or allow you to try again with another file/accession #. 
+      
+### 2. "ITS Region not found in this sequence!”
+Not sure what to write here. Is it dofferent than whats above^? 
+
+### 3. “Region length too short. Skipped.”
+This will be printed if the ITS region after the end of the 16S gene is under 20bps. This feature is coded to remove sequences with ITS              regions that are too small to be used to find any of the motifs. 
+
+### 4. “Not found in this sequence.” 
+This output will be printed when a particular motif was not found in the ITS sequence. This could be because the flanking regions are unique or      otherwise rare and so the software did not find these. If this happens frequently in your dataset, please report this to us in the “Issues” page        of the GitHub so that we can address this error and improve the code.
+
+### 5. “Not present in this operon” 
+This will be printed only regarding tRNAs in the sequence. If the program does not find tRNA-ala or tRNA-ile, it will assume that this operon        does not contain one or both tRNAs. Remember, it is best to use homologous operons when comparing ITS motifs between taxa (ie. Operons containing        the same number of tRNAs). 
+
+
+
+## Pre-Requirements:
 
 Install Python 3 in whatever environment you're in.
 
@@ -67,5 +110,3 @@ python motifsearch.py -g MT425922.1
 If you run into any issues please open an issue ticket here: https://github.com/nlabrad/motifsearch/issues
 
 python motifsearch.py -g
-
-
