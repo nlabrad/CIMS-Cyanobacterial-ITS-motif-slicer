@@ -32,27 +32,28 @@ The input for this tool must either be a fasta file with one or more properly fo
 Navigate to the location of the file (motifsearch.py):
 For example:
 
-cd C:/Users/{your-username}/Desktop/PathtoFile
+                  cd C:/Users/{your-username}/Desktop/PathtoFile
 
 For help:
 
-python3 motifsearch.py -h or python3 motifsearch.py --help
+                  python3 motifsearch.py -h  
+                  python3 motifsearch.py --help
 
 ### Processing a fasta file:
 
-python3 motifsearch.py -f {filename}
+                  python3 motifsearch.py -f {filename}
 
 For example:
 
-python3 motifsearch.py -f microbes.fasta
+                  python3 motifsearch.py -f microbes.fasta
 
 ### Fetching a file from Genbank then processing
 
-python3 motifsearch.py -g {accession Number}
+                  python3 motifsearch.py -g {accession Number}
 
 For example:
 
-python3 motifsearch.py -g MT425922.1
+                  python3 motifsearch.py -g MT425922.1
 
 
 ## Pre-Requirements:
@@ -72,13 +73,13 @@ Install in Windows: https://lmgtfy.app/?q=How+to+install+python+3+on+windows
 Open a terminal.
 If running python --version in your terminal returns Python 2.7 and you have Python 3 installed:
 
-pip3 install colorama
-pip3 install biopython
+                  pip3 install colorama
+                  pip3 install biopython
 
 If running python3 --version returns Python 3.X.X:
 
-pip install colorama
-pip install biopython
+                  pip install colorama
+                  pip install biopython
 
 ## Windows:
 
@@ -86,12 +87,12 @@ pip install biopython
 
 ### Install the dependencies:
 
-pip install colorama
-pip install biopython
+                  pip install colorama
+                  pip install biopython
 
 If you run into any issues please open an issue ticket here: https://github.com/nlabrad/motifsearch/issues
 
-python3 motifsearch.py -g
+                  python3 motifsearch.py -g
 
 ## Possible errors: 
 
