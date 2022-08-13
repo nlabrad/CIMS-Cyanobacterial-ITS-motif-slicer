@@ -20,7 +20,6 @@ def print_motifs(motifs):
             print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
         else:
             for key in motifs:
-                motif_count = 1
                 if(motifs[key] == None):
                     if (key == "tRNA1" or key == "tRNA2"):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
@@ -29,12 +28,17 @@ def print_motifs(motifs):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
                         print("\n")
                 else:
-                    if key == 'd1d1':
-                        for item in motifs[key]:
-                            print(Fore.CYAN + Style.BRIGHT + key + '-' + str(motif_count) + "\n" + 
-                                Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
-                            motif_count = motif_count + 1
+                    if (key == 'd1d1' or key == 'BoxB'):
+                        if len(motifs[key]) > 1:
+                            print(Fore.CYAN + Style.BRIGHT + key + " " +Fore.RED + Style.BRIGHT + str(len(motifs[key])) + " possible sequences found! \n")     
+                            for index, item in enumerate(motifs[key]):
+                                print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                                    Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                        else:
+                            print(Fore.CYAN + Style.BRIGHT + key + ":")
+                            for item in motifs[key]:
+                                print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                                    Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
                     else:
                         print(Fore.CYAN + Style.BRIGHT + key + "\n" + 
                             Fore.MAGENTA +  "Sequence: " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(motifs[key]) + 
@@ -62,6 +66,7 @@ def parse_fasta(fasta):
 # Finds all the possible D1D1 sequences. Gets the start and end patterns from the main program.
 
 #Function gets the start pattern, the end pattern, and the full sequence.
+#Necessary because the pattern will not include the possible variants. Using finditer to find more than one.
 def get_d1d1(start, end, seq):
     
     # Limits the area in which the d1d1 region is found, usually.
@@ -83,6 +88,23 @@ def get_d1d1(start, end, seq):
             #d1d1_results.append((d1d1_start_position,match.end()))
         #return it back to the program.
         return d1d1_results
+    
+    
+#Sometimes the regex tends to find the first (longest) start match, but the real BoxB is shorter. There is a matching start pattern down the line, within the pattern match
+#So this will cut the string by the start of the match + 1 so it doesn't find it again and looks for the next
+def get_boxb(pattern, seq):
+    result = []
+    while len(seq):
+        match = re.search(r"(CAGC(.*?)GCTG)", seq)
+        if match:
+            result.append(str(match.group()))
+            seq = seq[match.start() + 1:]
+        else:
+            break 
+    if len(result) == 0:
+        return None
+    return result
+
 # returns a dictionary where each key is a motif and the value is the possible motifs.
 def findMotifs(seq_input, organism_name):
     
@@ -139,7 +161,7 @@ def findMotifs(seq_input, organism_name):
         for seq in d1d1_results:
             motifs["d1d1"].append(seq)
         
-        #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of d1d1. use [-1] to pick the 
+        #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of the d1d1 string. use [-1] to pick the 
         # longest d1d1 result (the last one found, latest index of the d1d1 list)
         its_seq = its_seq[its_seq.rindex(motifs["d1d1"][-1]):] #trim processed its region to avoid overlapping searches.
     
@@ -166,15 +188,20 @@ def findMotifs(seq_input, organism_name):
         
     #find BoxB
     if (pico_cyano_flag == 1):
-        BoxBSearch = re.search(r"CAGC(.*?)GCTG", its_seq) #search for this is if's a pico
+        BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq)
+        #BoxBSearch = re.search(r"CAGC(.*?)GCTG", its_seq) #search for this is if's a pico
     else:
-        BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
+        BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq) #find text between basal clamps
+        #BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
     if (BoxBSearch == None):
         motifs["BoxB"] = None
     else:        
+        motifs["BoxB"] = BoxBSearch
+        #its_seq = its_seq[BoxBSearch.end():] #trim remaining its region
         
-        motifs["BoxB"] = BoxBSearch[0]
-        its_seq = its_seq[BoxBSearch.end():] #trim remaining its region
+        #rindex picks the last index of the found string. The first BoxB [0] is the longest, so using that.
+        its_seq = its_seq[its_seq.rindex(motifs["BoxB"][0]):]
+        
         
     #find Box-A
     BoxASearch = re.search(r"TCAAA[GA]G(.*?)A[AC]G", its_seq[::-1]) #BoxASearch[0] includes the string reversed.
