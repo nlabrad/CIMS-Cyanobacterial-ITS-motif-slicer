@@ -97,9 +97,6 @@ python3 motifsearch.py -g
 
 ### 1. “Could not find the end of 16S to determine the ITS region boundaries”  ```
 This error means that the sequence given to the software did not contain the sequence that represents the end of the 16S region (CCTCCTT). You        may proceed with the run if you have fed the program the ITS region only and everything will run as normal otherwise, abort the run for that            sequence by typing “N” when prompted “Proceed with search anyway? (Y/N)”. This will allow the program to move onto the next sequence in the fasta        file or allow you to try again with another file/accession #. 
-      
-### 2. "ITS Region not found in this sequence!”
-Not sure what to write here. Is it dofferent than whats above^? 
 
 ### 3. “Region length too short. Skipped.”
 This will be printed if the ITS region after the end of the 16S gene is under 20bps. This feature is coded to remove sequences with ITS              regions that are too small to be used to find any of the motifs. 
