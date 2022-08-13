@@ -25,6 +25,7 @@ This tool has been created to skim through and find the commonly used ITS foldin
 ## How to use this software: 
 The input for this tool must either be a fasta file with one or more properly formatted 16s-23s ITS sequences or a Genbank accession number to a 16s-23s ITS sequence. When running this on your terminal the output will include all motifs found in the sequences given to the program. If you would like to save the output of your run remember to use “>>” to save output into a text file. 
 
+
 ### Running the app:
 (For MacOS, you may have to run these using python3 instead of python)
 
@@ -52,7 +53,6 @@ python3 motifsearch.py -g {accession Number}
 For example:
 
 python3 motifsearch.py -g MT425922.1
-
 
 
 ## Pre-Requirements:
@@ -109,5 +109,3 @@ This output will be printed when a particular motif was not found in the ITS seq
 
 ### 5. “Not present in this operon” 
 This will be printed only regarding tRNAs in the sequence. If the program does not find tRNA-ala or tRNA-ile, it will assume that this operon        does not contain one or both tRNAs. Remember, it is best to use homologous operons when comparing ITS motifs between taxa (ie. Operons containing        the same number of tRNAs). 
-
-
