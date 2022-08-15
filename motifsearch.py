@@ -145,7 +145,9 @@ def findMotifs(seq_input, organism_name):
             d1d1_results = get_d1d1("GACCA", r"[AT]GGTC", its_seq)
         if (d1d1_results == None): 
             d1d1_results = get_d1d1("GACCG", r"[AC]GGTC", its_seq)
-    
+        if (d1d1_results == None): 
+            d1d1_results = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
+            
     if (d1d1_results == None):
             motifs["leader"] = None
             motifs["d1d1"] = None
