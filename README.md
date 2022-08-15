@@ -1,4 +1,5 @@
 # The Motif Deli (?)
+# CIMS: Cyanobacterial ITS motif slicer 
 
 ## What are ITS motifs used for? 
 
