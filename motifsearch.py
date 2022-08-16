@@ -190,10 +190,11 @@ def findMotifs(seq_input, organism_name):
         
     #find BoxB
     if (pico_cyano_flag == 1):
-        BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq)
+        BoxBSearch = get_boxb(r"(AGC(.*?)GCT)", its_seq)
         #BoxBSearch = re.search(r"CAGC(.*?)GCTG", its_seq) #search for this is if's a pico
     else:
-        BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq) #find text between basal clamps
+        BoxBSearch = get_boxb(r"(AGC(.*?)GCT)", its_seq)
+        #BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq) #find text between basal clamps
         #BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
     if (BoxBSearch == None):
         motifs["BoxB"] = None
