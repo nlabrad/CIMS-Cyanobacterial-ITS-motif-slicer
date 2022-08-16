@@ -68,37 +68,29 @@ def parse_fasta(fasta):
 #Function gets the start pattern, the end pattern, and the full sequence.
 #Necessary because the pattern will not include the possible variants. Using finditer to find more than one.
 def get_d1d1(start, end, seq):
-    
-    # Limits the area in which the d1d1 region is found, usually.
-    d1d1_search_area = seq[0:150]
-    # Find where the starting pattern is at. Limit to the first 20 bases.
-    d1d1_start_position = d1d1_search_area.find(start, 0, 20)
-    
-    #If the start position is not found, return None to the main program
-    if (d1d1_start_position == -1):
+    d1d1_search_area = seq[0:150] # Limits the area in which the d1d1 region is found, usually.
+    d1d1_start_position = d1d1_search_area.find(start, 0, 20)# Find where the starting pattern is at. Limit to the first 20 bases.
+    if (d1d1_start_position == -1):#If the start position is not found, return None to the main program
         return None
-    # But if it is found, try searching for the end pattern.
-    else:
-        #Find all the matching bases to the pattern in the argument passed to the function (end)
-        end_matches = re.finditer(end, d1d1_search_area)
+    else: # But if it is found, try searching for the end pattern.
+        end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
         d1d1_results = []
-        #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
-        for match in end_matches:
+        
+        for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
             d1d1_results.append(seq[d1d1_start_position:match.end()])
-            #d1d1_results.append((d1d1_start_position,match.end()))
-        #return it back to the program.
         return d1d1_results
-    
     
 #Sometimes the regex tends to find the first (longest) start match, but the real BoxB is shorter. There is a matching start pattern down the line, within the pattern match
 #So this will cut the string by the start of the match + 1 so it doesn't find it again and looks for the next
 def get_boxb(pattern, seq):
-    result = []
-    while len(seq):
-        match = re.search(r"(CAGC(.*?)GCTG)", seq)
-        if match:
-            result.append(str(match.group()))
-            seq = seq[match.start() + 1:]
+    result = [] # Array where matches are stored
+    while len(seq): #while the length of the sequence evaluated is not 0
+        match = re.search(pattern, seq) #find the pattern
+        if (match): #if found
+            if(len(match.group()) < 80 ): #if the length of the seq is <80
+                result.append(str(match.group())) #add it to the result array
+
+            seq = seq[match.start() + 1:] # slices the match off the seq for the next search.
         else:
             break 
     if len(result) == 0:
@@ -189,13 +181,9 @@ def findMotifs(seq_input, organism_name):
         its_seq = its_seq[tRNA2Search.end():] #trim processed its region
         
     #find BoxB
-    if (pico_cyano_flag == 1):
-        BoxBSearch = get_boxb(r"(AGC(.*?)GCT)", its_seq)
-        #BoxBSearch = re.search(r"CAGC(.*?)GCTG", its_seq) #search for this is if's a pico
-    else:
-        BoxBSearch = get_boxb(r"(AGC(.*?)GCT)", its_seq)
-        #BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq) #find text between basal clamps
-        #BoxBSearch = re.search(r"[TC]AGCA[ACT](.*?)TGCT[AG]", its_seq) #find text between basal clamps
+    BoxBSearch = get_boxb(r"(CAGC(.*?)GCTG)", its_seq)
+    if (BoxBSearch == None):
+        BoxBSearch = get_boxb(r"(AGCA(.*?)CTG)", its_seq)
     if (BoxBSearch == None):
         motifs["BoxB"] = None
     else:        
