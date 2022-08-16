@@ -10,7 +10,7 @@ This tool has been created to skim through and find the commonly used ITS foldin
 
    ### The program will return the entire ITS sequence and a list of ITS motifs, the corresponding motif sequences, and the motif lengths. In the current version of the software, the motifs included in the standard output are:
                   •	Leader
-                  •	D1D1`
+                  •	D1-D1`
                   •	tRNA-ala
                   •	tRNA- ile 
                   •	Box B 
