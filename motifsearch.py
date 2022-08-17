@@ -87,7 +87,7 @@ def get_boxb(pattern, seq):
     while len(seq): #while the length of the sequence evaluated is not 0
         match = re.search(pattern, seq) #find the pattern
         if (match): #if found
-            if(len(match.group()) < 80 ): #if the length of the seq is <80
+            if(len(match.group()) > 15 ) & (len(match.group()) < 80 ): #if the length of the seq is <80
                 result.append(str(match.group())) #add it to the result array
 
             seq = seq[match.start() + 1:] # slices the match off the seq for the next search.
