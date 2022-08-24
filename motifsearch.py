@@ -238,7 +238,7 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["d1d1"][-1]):] #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of the d1d1 string. use [-1] to pick the longest d1d1 result (the last one found, latest index of the d1d1 list)
 
     #spacer-D2-spacer D3-spacer region and  tRNA-1
-    trna1 = get_motif("GGGC[TC]ATTA","GGCCCA", its_seq)
+    trna1 = get_motif("GGGC[TC]ATTA","GGCCCA", its_seq, 10, 80)
     #trna1_results = re.search(r"GGGC[TC]ATTA(.*?)GGCCCA",its_seq) #find text between basal clamps
     if trna1 is None:
         motifs["tRNA1"] = None
@@ -250,7 +250,7 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["tRNA1"][-1]):] #trim processed its region
 
     #find tRNA-Ala(2)
-    trna2 = get_motif("GGGG", "[TC]CTCCA", its_seq)
+    trna2 = get_motif("GGGG", "[TC]CTCCA", its_seq, 10, 80)
     if trna2 is None:
         motifs["tRNA2"] = None
         motifs["v2"] = None
@@ -261,7 +261,7 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["tRNA2"][-1]):] #trim processed its region
 
     #find BoxB
-    boxb = get_motif("CAGC","GCTG", its_seq, 1, 80)
+    boxb = get_motif("CAGC","GCTG", its_seq, 10, 80)
     if boxb is None:
         boxb = get_motif("AGCA","CTG", its_seq)
     if boxb is None:
@@ -282,19 +282,19 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["BoxA"][0]) - 3:]
 
     #find D4
-    d4 = get_motif("ACT", "TA[TGAC]", its_seq, 4, 50)
+    d4 = get_motif("ACT", "TA[TGAC]", its_seq, 4, 20)
     if d4 is None:
         motifs["D4"] = None
     else:
-        motifs["D4"].append(d4[0])
+        motifs["D4"].append(d4[0]) #D4 is not very accurate, store only the first one.
         its_seq = its_seq[its_seq.rindex(motifs["D4"][0]):]
 
     #Find v3
-    v3 = get_motif("GT[CA]G", "CA[CG]A[GC]", its_seq, 4,50)
+    v3 = get_motif("GT[CA]G", "CA[CG]A[GC]", its_seq, 4)
     if v3 is None:
         motifs["V3"] = None
     else:
-        motifs["V3"].append(v3[0])
+        motifs["V3"].append(v3[0]) #V3 not very accurate, stores only the first one.
         its_seq = its_seq[its_seq.rindex(motifs["V3"][0]):]
 
     return motifs
