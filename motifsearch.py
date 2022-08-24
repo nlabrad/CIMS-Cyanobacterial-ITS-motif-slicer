@@ -2,8 +2,10 @@ import os
 import re
 import sys
 import argparse
-import colorama
 import json
+import time
+import colorama
+
 from Bio import Entrez, SeqIO #import the required libraries
 from colorama import Fore, Back, Style
 colorama.init(autoreset=True)
@@ -20,15 +22,14 @@ def generate_json(motif_list):
     Args:
         motif_list (dictionary): motifs
     """
-    
+
     json_string = json.dumps(motif_list, indent=3)
     file = open("motifs.json", "w", encoding='utf-8')
     file.write(json_string)
     file.close()
-    
+
 def check_email(user_email):
     """ Validates email format
-
     Args:
         email (string): email to validate
 
@@ -37,7 +38,7 @@ def check_email(user_email):
     """
     valid_email_format = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     return re.fullmatch(valid_email_format, user_email)
-    
+
 def print_motifs(motif_list):
     """Gets the dict of motifs and prints them out in the terminal
 
@@ -67,7 +68,6 @@ def print_motifs(motif_list):
                         print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
                             Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
 
-# Gets the specified sequence from genbank to process.
 def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with accession#
     """ Gets fasta file from genbank to be processed
 
@@ -79,12 +79,15 @@ def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with acc
         dict: list of motifs
     """
     Entrez.email = valid_email # email reported to entrez to associate with the query
-    with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
-        seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
+    try:
+        with Entrez.efetch(db='nucleotide', id=accession, rettype="fasta", retmode="text") as handle: # id is what genbank ID to query, type is genbank
+            seq_record = SeqIO.read(handle, "fasta") #get sequence in fasta format to be used as needed.
         sliced_motifs = slice_motifs(str(seq_record.seq), str(seq_record.id))
+    except IOError:
+        print("Network error. Could not fetch from genbank")
+        raise IOError
     return sliced_motifs
 
-# Gets sequences from a fasta file. Calls findMotif for each.
 def parse_fasta(fasta_string):
     """ Processes a given fasta file.
 
@@ -100,13 +103,11 @@ def parse_fasta(fasta_string):
         print(Fore.LIGHTGREEN_EX)
         for x in range(terminal_width):
             print(Fore.LIGHTGREEN_EX + '-', end = '')
-            
         print('\n')
         sliced_motifs = slice_motifs(str(seq_record.seq), seq_record.id)
         all_motifs.append(sliced_motifs)
         print_motifs(sliced_motifs)
     return all_motifs
-
 
 def get_d1d1(start, end, seq):
     """ Algorithm to search for d1d1 motif
@@ -129,13 +130,13 @@ def get_d1d1(start, end, seq):
         for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
             d1d1_results.append(seq[d1d1_start_position:match.end()])
         return d1d1_results
-    
-#Sometimes the regex tends to find the first (longest) start match, but the real BoxB is shorter. There is a matching start pattern down the line, within the pattern match
-#So this will cut the string by the start of the match + 1 so it doesn't find it again and looks for the next
+
 def get_motif(start, end, seq, min_bases = 1, max_bases = 200):
-    
+
     """ Function that searches for a motif given the parameters
-    
+    Sometimes the regex tends to find the first (longest) start match, but the real BoxB is shorter. There is a matching start pattern down the line, within the pattern match
+    So this will cut the string by the start of the match + 1 so it doesn't find it again and looks for the next
+
     Args:
         start (string): motif start pattern
         end (string): motif end pattern
@@ -172,7 +173,6 @@ def slice_its_region(seq_input, min_length):
         int: start position of the ITS region (index relative to the raw sequence provided)
     """
     its_seq_search = re.search(r"CCTCCTT", seq_input)
-    
     if its_seq_search is None:
         its_seq_search = re.search(r"CCTCCTA", seq_input)
         global PICO_CYANO_FLAG
@@ -184,8 +184,8 @@ def slice_its_region(seq_input, min_length):
         if len(seq_input[its_seq_search.start():]) < min_length:
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
             return None
-        return (its_seq_search.start() + 7)
-    
+        return its_seq_search.start() + 7
+
 def slice_motifs(seq_input, organism_name):
     """Main function that coordinates the calls to find all the motifs. Contains the motif patterns
 
@@ -212,24 +212,12 @@ def slice_motifs(seq_input, organism_name):
                 "D4" : [],
                 "V3" : []
                 }
-    # its_seq_search = re.search(r"CCTCCTT", seq_input)
-    # if its_seq_search is None:
-    #     its_seq_search = re.search(r"CCTCCTA", seq_input)
-    #     pico_cyano_flag = 1
-        
-    # if its_seq_search is None:
-    #     print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
-        
-    # else:
-    #     if len(seq_input[its_seq_search.start():]) < minimum_its_length:
-    #         print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
-    #         return None
-    #     its_start_position = its_seq_search.start() + 7
+
     its_start_position = slice_its_region(seq_input, minimum_its_length)
     if its_start_position is None:
         print (Back.RED + Fore.WHITE + "Found ITS Region length is too short (not accurate). Skipping this sequence.")
         return None
-        
+
     its_seq = seq_input[its_start_position:]   #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
     motifs[organism_name].append(its_seq) #store the whole ITS region sequence in the dict. This one does not change with the search.
     
@@ -243,7 +231,7 @@ def slice_motifs(seq_input, organism_name):
             d1d1 = get_d1d1("GACCG", r"[AC]GGTC", its_seq)
         if d1d1 is None:
             d1d1 = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
-            
+
     if d1d1 is None:
         motifs["leader"] = None
         motifs["d1d1"] = None
@@ -253,7 +241,7 @@ def slice_motifs(seq_input, organism_name):
         for seq in d1d1:
             motifs["d1d1"].append(seq) #Append the d1d1 results to the d1d1 dict key (an array).
         its_seq = its_seq[its_seq.rindex(motifs["d1d1"][-1]):] #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of the d1d1 string. use [-1] to pick the longest d1d1 result (the last one found, latest index of the d1d1 list)
-    
+
     #spacer-D2-spacer D3-spacer region and  tRNA-1
     trna1 = get_motif("GGGC[TC]ATTA","GGCCCA", its_seq)
     #trna1_results = re.search(r"GGGC[TC]ATTA(.*?)GGCCCA",its_seq) #find text between basal clamps
@@ -265,7 +253,7 @@ def slice_motifs(seq_input, organism_name):
         for seq in trna1:
             motifs["tRNA1"].append(seq)
         its_seq = its_seq[its_seq.rindex(motifs["tRNA1"][-1]):] #trim processed its region
-    
+
     #find tRNA-Ala(2)
     trna2 = get_motif("GGGG", "[TC]CTCCA", its_seq)
     if trna2 is None:
@@ -276,7 +264,7 @@ def slice_motifs(seq_input, organism_name):
         for seq in trna2:
             motifs["tRNA2"].append(seq)
         its_seq = its_seq[its_seq.rindex(motifs["tRNA2"][-1]):] #trim processed its region
-        
+
     #find BoxB
     boxb = get_motif("CAGC","GCTG", its_seq, 1, 80)
     if boxb is None:
@@ -288,7 +276,7 @@ def slice_motifs(seq_input, organism_name):
             motifs["BoxB"].append(seq)
         #rindex picks the last index of the found string. The first BoxB [0] is the longest, so using that.
         its_seq = its_seq[its_seq.rindex(motifs["BoxB"][0]):]
-        
+
     #find Box-A
     boxa = get_motif("TCAAA[GA]G","A[AC]G", its_seq[::-1], 1, 80) #reverse the string, look from the back to the front
     if boxa is None:
@@ -297,7 +285,7 @@ def slice_motifs(seq_input, organism_name):
         for seq in boxa:
             motifs["BoxA"].append(seq[::-1]) #reverses it back.
         its_seq = its_seq[its_seq.rindex(motifs["BoxA"][0]) - 3:]
-        
+
     #find D4
     d4 = get_motif("ACT", "TA[TGAC]", its_seq)
     if d4 is None:
@@ -306,7 +294,7 @@ def slice_motifs(seq_input, organism_name):
         for seq in d4:
             motifs["D4"].append(seq)
         its_seq = its_seq[its_seq.rindex(motifs["D4"][0]):]
-        
+
     #Find v3
     v3 = get_motif("GT[CA]G", "CA[CG]A[GC]", its_seq)
     if v3 is None:
@@ -315,10 +303,11 @@ def slice_motifs(seq_input, organism_name):
         for seq in v3:
             motifs["V3"].append(seq)
         its_seq = its_seq[its_seq.rindex(motifs["V3"][0]):]
-        
+
     return motifs
 
-
+global PICO_CYANO_FLAG
+PICO_CYANO_FLAG = 0
 #Main
 # Create the parser
 parser = argparse.ArgumentParser(
@@ -347,7 +336,12 @@ parser.add_argument('-e',
                     '--email',
                     help = "Provide email for genbank query. If not provided, you will be prompted for one at runtime.",
                     default = None,
-)
+                    )
+parser.add_argument('-j',
+                    '--json',
+                    help = 'Outputs a json file with all the motifs',
+                    action='store_true'
+                    )
 
 #Process the arguments
 if len(sys.argv) == 1: #If there is no argument then print the help
@@ -355,32 +349,37 @@ if len(sys.argv) == 1: #If there is no argument then print the help
     parser.exit()
 args = parser.parse_args()#Parse the arguments, store them in args.
 
-
 if args.fasta:
     try:
         fasta = open(args.fasta, "r", encoding="UTF-8")
         print("Processing fasta file...")
         motifs = parse_fasta(fasta)
-        generate_json(motifs)
-        exit()
+        if args.json:
+            generate_json(motifs) 
     except IOError:
         print ("File not found.")
         exit()
-    
+
 if args.genbank:
     if args.email: #Get email to send to Entrez. Either from argument or ask the user for input
         email = args.email
     else:
-        email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
+        print("To query the Entrez database via a script, NCBI requires attaching an email address to the query.")
+        print("This script does not check if the email is valid, does not store it and does not share it with anyone else.")
+        print("The Biopython library is used to handle the communication with Entrez and the handling of the provided email address")
+        email = input("Please enter your email for the Entrez query: ".lower())
     while (not check_email(email)): #Check that the email is valid.
         print("Invalid email, try again: ")
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
     for gb in args.genbank:
-        print("Fetching genbank data from " + gb)
         try:
+            print("Fetching genbank data from " + gb)
+            time.sleep(1) #Required to not go over the 3 queries/second threshold imposed by Entrez
             motifs = parse_genbank(gb, email)
+            if args.json:
+                generate_json(motifs)
             print_motifs(motifs)
-        except:
-            print("Error parsing that accession number. Exiting.")
-            exit()
             
+        except IOError:
+            print("Error while parsing accession number. Exiting.")
+            exit()
