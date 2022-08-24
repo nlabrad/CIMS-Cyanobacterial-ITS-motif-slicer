@@ -131,36 +131,31 @@ def get_d1d1(start, end, seq):
             d1d1_results.append(seq[d1d1_start_position:match.end()])
         return d1d1_results
 
-def get_motif(start, end, seq, min_bases = 1, max_bases = 200):
-
-    """ Function that searches for a motif given the parameters
-    Sometimes the regex tends to find the first (longest) start match, but the real BoxB is shorter. There is a matching start pattern down the line, within the pattern match
-    So this will cut the string by the start of the match + 1 so it doesn't find it again and looks for the next
-
-    Args:
-        start (string): motif start pattern
-        end (string): motif end pattern
-        seq (string): sequence where the d1d1 is to be found.
-        min_bases (int): OPTIONAL argument to set the minimum length of results
-        max_bases (int): OPTIONAL argument to set the maximum length of results
+def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
+    
+    """Searches for the possible motifs given basal clamps in the arguments.
+    Args: 
+        start_pattern(string): motif opening basal clamp
+        end_pattern(string): motif closing basal clamp
+        seq(string): master sequence where to look for the motifs.
+        min(int): minimum length of motif (default 1)
+        max(int): maxmum length of motif (default 200)
 
     Returns:
-        list: list of sequences (string) that correspond to the motif
+        list: list of possible sequences.
     """
-    result = [] # Array where matches are stored
-    pattern = r"(" + start + "(.*?)" + end + ")"
-    while len(seq): #while the length of the sequence evaluated is not 0
-        match = re.search(pattern, seq) #find the pattern
-        if match: #if found
-            if(len(match.group()) > min_bases ) & (len(match.group()) < max_bases): #if the length of the seq is <80
-                result.append(str(match.group())) #add it to the result array
-
-            seq = seq[match.start() + 1:] # slices the match off the seq for the next search.
-        else:
-            break 
-    if len(result) == 0:
+    start_match = re.search(start_pattern, seq)
+    if start_match is None: #If the start position is not found, return None to the main program
         return None
-    return result
+    
+    end_matches = re.finditer(r"" + end_pattern, seq)#Find all the matching bases to the pattern in the argument passed to the function (end)
+    motif_results = []
+    for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
+        motif_seq = str(seq[start_match.start():match.end()])
+        if len(motif_seq) > min_length and len(motif_seq) < max_length:
+            motif_results.append(motif_seq)
+    return motif_results
+
 
 def slice_its_region(seq_input, min_length):
     """ Slices only the ITS region from the sequence given by the user (fasta or genbank)
@@ -278,7 +273,7 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["BoxB"][0]):]
 
     #find Box-A
-    boxa = get_motif("TCAAA[GA]G","A[AC]G", its_seq[::-1], 1, 80) #reverse the string, look from the back to the front
+    boxa = get_motif("TCAAA[GA]G","A[AC]G", its_seq[::-1], 1, 10) #reverse the string, look from the back to the front
     if boxa is None:
         motifs["BoxA"] = None
     else:
@@ -287,21 +282,19 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["BoxA"][0]) - 3:]
 
     #find D4
-    d4 = get_motif("ACT", "TA[TGAC]", its_seq)
+    d4 = get_motif("ACT", "TA[TGAC]", its_seq, 4, 50)
     if d4 is None:
         motifs["D4"] = None
     else:
-        for seq in d4:
-            motifs["D4"].append(seq)
+        motifs["D4"].append(d4[0])
         its_seq = its_seq[its_seq.rindex(motifs["D4"][0]):]
 
     #Find v3
-    v3 = get_motif("GT[CA]G", "CA[CG]A[GC]", its_seq)
+    v3 = get_motif("GT[CA]G", "CA[CG]A[GC]", its_seq, 4,50)
     if v3 is None:
         motifs["V3"] = None
     else:
-        for seq in v3:
-            motifs["V3"].append(seq)
+        motifs["V3"].append(v3[0])
         its_seq = its_seq[its_seq.rindex(motifs["V3"][0]):]
 
     return motifs
