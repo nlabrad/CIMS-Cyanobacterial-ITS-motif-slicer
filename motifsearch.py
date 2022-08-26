@@ -50,7 +50,7 @@ def print_motifs(motif_list):
     else:
         for key in motif_list:
             if motif_list[key] is None:
-                if (key == "tRNA1" or key == "tRNA2"):
+                if (key == "tRNA_ile" or key == "tRNA_ala"):
                     print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
                     print("\n")  
                 else: 
@@ -199,9 +199,9 @@ def slice_motifs(seq_input, organism_name):
                 "leader" : [],
                 "d1d1" : [],
                 "sp_d2d3_sp" : [],
-                "tRNA1" : [],
+                "tRNA_ile" : [],
                 "v2" : [],
-                "tRNA2" : [],
+                "tRNA_ala" : [],
                 "BoxB" : [],
                 "BoxA" : [],
                 "D4" : [],
@@ -238,27 +238,27 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["d1d1"][-1]):] #Trim the its_seq. rindex picks the last index of the found string. Equivalent to the end of the d1d1 string. use [-1] to pick the longest d1d1 result (the last one found, latest index of the d1d1 list)
 
     #spacer-D2-spacer D3-spacer region and  tRNA-1
-    trna1 = get_motif("GGGC[TC]ATTA","GGCCCA", its_seq, 10, 80)
+    trna_ile = get_motif("GGGC[TC]ATTA","GGCCCA", its_seq, 10, 80)
     #trna1_results = re.search(r"GGGC[TC]ATTA(.*?)GGCCCA",its_seq) #find text between basal clamps
-    if trna1 is None:
-        motifs["tRNA1"] = None
+    if trna_ile is None:
+        motifs["tRNA_ile"] = None
         motifs["sp_d2d3_sp"] = None
     else:
-        motifs["sp_d2d3_sp"].append(its_seq[0:its_seq.find(trna1[0])]) #Store what is between the end of d1d1 (first char) and the start of tRNA1
-        for seq in trna1:
-            motifs["tRNA1"].append(seq)
-        its_seq = its_seq[its_seq.rindex(motifs["tRNA1"][-1]):] #trim processed its region
+        motifs["sp_d2d3_sp"].append(its_seq[0:its_seq.find(trna_ile[0])]) #Store what is between the end of d1d1 (first char) and the start of tRNA_ile
+        for seq in trna_ile:
+            motifs["tRNA_ile"].append(seq)
+        its_seq = its_seq[its_seq.rindex(motifs["tRNA_ile"][-1]):] #trim processed its region
 
     #find tRNA-Ala(2)
-    trna2 = get_motif("GGGG", "[TC]CTCCA", its_seq, 10, 80)
-    if trna2 is None:
-        motifs["tRNA2"] = None
+    trna_ala = get_motif("GGGG", "[TC]CTCCA", its_seq, 10, 80)
+    if trna_ala is None:
+        motifs["tRNA_ala"] = None
         motifs["v2"] = None
     else: 
-        motifs["v2"].append(its_seq[0:its_seq.find(trna2[0])]) #everything between end of tRNA1 and start of tRNA2
-        for seq in trna2:
-            motifs["tRNA2"].append(seq)
-        its_seq = its_seq[its_seq.rindex(motifs["tRNA2"][-1]):] #trim processed its region
+        motifs["v2"].append(its_seq[0:its_seq.find(trna_ala[0])]) #everything between end of tRNA_ile and start of tRNA_ala
+        for seq in trna_ala:
+            motifs["tRNA_ala"].append(seq)
+        its_seq = its_seq[its_seq.rindex(motifs["tRNA_ala"][-1]):] #trim processed its region
 
     #find BoxB
     boxb = get_motif("CAGC","GCTG", its_seq, 10, 80)
