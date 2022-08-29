@@ -58,15 +58,15 @@ def print_motifs(motif_list):
                     print("\n")
             else:
                 if len(motif_list[key]) > 1:
-                    print(Fore.CYAN + Style.BRIGHT + key + " " +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found: \n")     
+                    print(Fore.CYAN + Style.BRIGHT + key + " \n\t" +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found! \n")     
                     for index, item in enumerate(motif_list[key]):
-                        print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                        print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
                 else:
                     print(Fore.CYAN + Style.BRIGHT + key + ":")
                     for item in motif_list[key]:
-                        print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                        print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
 
 def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with accession#
     """ Gets fasta file from genbank to be processed
@@ -308,9 +308,7 @@ PICO_CYANO_FLAG = 0
 # Create the parser
 parser = argparse.ArgumentParser(
     description = "Find motifs within Cyanobacteria ITS region sequences")
-
 group = parser.add_mutually_exclusive_group()#Create a group of mutually exclusive argument options
-
 group.add_argument('-f',
                    '--fasta',
                    action = "store",
@@ -369,7 +367,7 @@ if args.genbank:
         email = input("Entrez requires an email to be associated with the requests. Please enter your email: ".lower())
     for gb in args.genbank:
         try:
-            print("Fetching genbank data from " + gb)
+            print("\nFetching genbank data from " + gb + "\n")
             time.sleep(1) #Required to not go over the 3 queries/second threshold imposed by Entrez
             motifs = parse_genbank(gb, email)
             if args.json:
