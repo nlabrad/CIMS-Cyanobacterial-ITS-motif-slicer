@@ -54,28 +54,24 @@ def print_motifs(motif_list, print_list):
             print(Fore.LIGHTGREEN_EX + '-', end = '')
         print('\n\n')
         for key in motif_list:
-            if (str(key) in print_list or "all" in print_list):
-                if motif_list[key] is None: #If the key is empty
-                    if (key == "tRNA_ile" or key == "tRNA_ala"):
-                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
-                        print("\n")
-                    else:
-                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
-                        print("\n")
+            if motif_list[key] is None:
+                if (key == "tRNA_ile" or key == "tRNA_ala"):
+                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
+                    print("\n")  
+                else: 
+                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
+                    print("\n")
+            else:
+                if len(motif_list[key]) > 1:
+                    print(Fore.CYAN + Style.BRIGHT + key + " " +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found: \n")     
+                    for index, item in enumerate(motif_list[key]):
+                        print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
                 else:
-                    if len(motif_list[key]) > 1: #Check if there is more than one sequence in that key
-                        print(Fore.CYAN + Style.BRIGHT + key + " \n\t" +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found! \n")     
-                        for index, item in enumerate(motif_list[key]):
-                            print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
-                    else:
-                        if key is list(motif_list.keys())[0]:
-                            print(Fore.CYAN + Style.BRIGHT + key + " ITS Region:")
-                        else:
-                            print(Fore.CYAN + Style.BRIGHT + key + ":")
-                        for item in motif_list[key]:
-                            print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                    print(Fore.CYAN + Style.BRIGHT + key + ":")
+                    for item in motif_list[key]:
+                        print(Fore.MAGENTA + Style.BRIGHT +  "Sequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + " \nLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
 
 def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with accession#
     """ Gets fasta file from genbank to be processed
@@ -369,10 +365,6 @@ parser.add_argument('-j',
 parser.add_argument('-t',
                    '--trna',
                    help = 'Returns ONLY how many tRNAs are found to use for homologous operon verification.',
-                    )
-parser.add_argument('-o',
-                   '--operon',
-                   help = 'Returns how many tRNAs are found to use for homologous operon verification.',
                    action='store_true'
                    )
 
@@ -399,15 +391,6 @@ if args.fasta:
                     print_motifs(organism, args.select)
             if args.json:
                 generate_json(all_motifs) 
-        motifs = parse_fasta(fasta)
-        if args.select:
-            print_motifs(motifs, args.select)
-        else:
-            print_motifs(motifs, args.select)
-        if args.json:
-            generate_json(motifs) 
-                
-                    
     except IOError:
         print ("File not found.")
         exit()
@@ -431,18 +414,12 @@ if args.genbank:
             if args.trna:
                 pass
             else:
-
                 if args.select:
                     print_motifs(motifs, args.select)
                 else:
                     print_motifs(motifs, args.select)
                 if args.json:
                     generate_json(motifs)
-
-                print_motifs(motifs, args.select)
-            if args.json:
-                generate_json(motifs)
-
         except IOError:
             print("Error while parsing accession number. Exiting.")
             exit()
