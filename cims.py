@@ -48,6 +48,11 @@ def print_motifs(motif_list, print_list):
     if motif_list is None:
         print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
     else:
+        terminal_width = os.get_terminal_size()[0]
+        print(Fore.LIGHTGREEN_EX)
+        for x in range(terminal_width):
+            print(Fore.LIGHTGREEN_EX + '-', end = '')
+        print('\n\n')
         for key in motif_list:
             if (str(key) in print_list or "all" in print_list):
                 if motif_list[key] is None: #If the key is empty
@@ -103,12 +108,7 @@ def parse_fasta(fasta_string):
     """
     all_motifs = []
     for seq_record in SeqIO.parse(fasta_string, "fasta"): #for each entry do the below.
-        terminal_width = os.get_terminal_size()[0]
-        print(Fore.LIGHTGREEN_EX)
-        for x in range(terminal_width):
-            print(Fore.LIGHTGREEN_EX + '-', end = '')
-        print('\n')
-        sliced_motifs = slice_motifs(str(seq_record.seq), seq_record.id)
+        sliced_motifs = slice_motifs(str(seq_record.seq), seq_record.id) #store the sliced motifs, pass the sequence and the organism name
         all_motifs.append(sliced_motifs)
     return all_motifs
 
@@ -127,12 +127,11 @@ def get_d1d1(start, end, seq):
     d1d1_start_position = d1d1_search_area.find(start, 0, 20)# Find where the starting pattern is at. Limit to the first 20 bases.
     if d1d1_start_position == -1: #If the start position is not found, return None to the main program
         return None
-    else: # But if it is found, try searching for the end pattern.
-        end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
-        d1d1_results = []
-        for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
-            d1d1_results.append(seq[d1d1_start_position:match.end()])
-        return d1d1_results
+    end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
+    d1d1_results = []
+    for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
+        d1d1_results.append(seq[d1d1_start_position:match.end()])
+    return d1d1_results
 
 def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
     
@@ -147,6 +146,7 @@ def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
     Returns:
         list: list of possible sequences.
     """
+    
     motif_results = []
     while len(seq):
         start_match = re.search(start_pattern, seq)
@@ -163,7 +163,7 @@ def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
         return None
     return motif_results
 
-def slice_its_region(seq_input, min_length):
+def slice_its_region(seq_input):
     """ Slices only the ITS region from the sequence given by the user (fasta or genbank)
 
     Args:
@@ -173,19 +173,21 @@ def slice_its_region(seq_input, min_length):
     Returns:
         int: start position of the ITS region (index relative to the raw sequence provided)
     """
+    min_length = 20 #Used to filter out bad results.
+    global PICO_CYANO_FLAG
     its_seq_search = re.search(r"CCTCCTT", seq_input)
     if its_seq_search is None:
         its_seq_search = re.search(r"CCTCCTA", seq_input)
-        global PICO_CYANO_FLAG
-        PICO_CYANO_FLAG = 1
+        if its_seq_search:
+            PICO_CYANO_FLAG = 1
     if its_seq_search is None:
-        print(Fore.RED + "Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
-        return 0
+        print(Fore.YELLOW + "\nWARN: Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
+        return seq_input
     else:
         if len(seq_input[its_seq_search.start():]) < min_length:
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
-            return None
-        return its_seq_search.start() + 7
+            return -1
+        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700]
 
 def slice_motifs(seq_input, organism_name):
     """Main function that coordinates the calls to find all the motifs. Contains the motif patterns
@@ -197,7 +199,7 @@ def slice_motifs(seq_input, organism_name):
     Returns:
         dict: dictionary with motifs. Key: motif name, value: motif sequence(s) (list)
     """
-    minimum_its_length = 20#Used to filter out bad results.
+    
     its_start_position = 0#ITS region start index relative to the fasta/genbank supplied sequence
     global PICO_CYANO_FLAG #Used to identify picocyano d1d1 starts.
     PICO_CYANO_FLAG = 0
@@ -214,12 +216,12 @@ def slice_motifs(seq_input, organism_name):
                 "V3" : []
                 }
 
-    its_start_position = slice_its_region(seq_input, minimum_its_length)
-    if its_start_position is None:
-        print (Back.RED + Fore.WHITE + "Found ITS Region length is too short (not accurate). Skipping this sequence.")
+    print(Fore.WHITE + "\nSlicing " + str(organism_name) +"...")
+    its_seq = slice_its_region(seq_input) #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
+    if its_seq == -1:
+        print (Back.RED + Fore.WHITE + "Found ITS Region length is too short (not accurate). Skipping\n" + str(organism_name))
         return None
 
-    its_seq = seq_input[its_start_position:]   #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
     motifs[organism_name].append(its_seq) #store the whole ITS region sequence in the dict. This one does not change with the search.
     
     if PICO_CYANO_FLAG == 1: # Change D1D1 start if we are dealing with a picocyano. 
@@ -305,6 +307,31 @@ def slice_motifs(seq_input, organism_name):
 
     return motifs
 
+def trna_check(motifs):
+    """Checks for presence of tRNAs to check for homologous operons.
+
+    Args:
+        motifs (dict): list of motifs of one organism
+
+    Returns:
+        dict: dictionary with the tRNAs and if they are found or not.
+    """
+    trnas = {'tRNA_ile':'Not Found', 'tRNA_ala': 'Not Found'}
+    if motifs['tRNA_ile'] is not None:
+        trnas['tRNA_ile'] = 'Found'
+    if motifs['tRNA_ala'] is not None:
+        trnas['tRNA_ala'] = 'Found'
+    print(Fore.CYAN + '\n' + str(list(motifs.keys())[0]) + '\n')
+    if (trnas['tRNA_ile'] == 'Found'):
+        print(Fore.GREEN + "tRNA1: " + trnas['tRNA_ile'])
+    else:
+        print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
+    if (trnas['tRNA_ala'] == 'Found'):
+        print(Fore.GREEN + "tRNA1: " + trnas['tRNA_ile'])
+    else:
+        print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
+
+    
 global PICO_CYANO_FLAG
 PICO_CYANO_FLAG = 0
 #Main
@@ -339,9 +366,9 @@ parser.add_argument('-j',
                     help = 'Outputs a json file with all the motifs',
                     action='store_true'
                     )
-parser.add_argument('-o',
-                   '--operon',
-                   help = 'Returns how many tRNAs are found to use for homologous operon verification.',
+parser.add_argument('-t',
+                   '--trna',
+                   help = 'Returns ONLY how many tRNAs are found to use for homologous operon verification.',
                    action='store_true'
                    )
 
@@ -355,15 +382,19 @@ if args.fasta:
     try:
         fasta = open(args.fasta, "r", encoding="UTF-8")
         print("Processing fasta file...")
-        motifs = parse_fasta(fasta)
-        if args.select:
-            print_motifs(motifs, args.select)
-        else:
-            print_motifs(motifs, args.select)
-        if args.json:
-            generate_json(motifs) 
-                
-                    
+        all_motifs = parse_fasta(fasta)
+        if args.trna:
+            for organism in all_motifs:
+                trna_check(organism)
+        else:    
+            if args.select:
+                for organism in all_motifs:
+                    print_motifs(organism, args.select)
+            else:
+                for organism in all_motifs:
+                    print_motifs(organism, args.select)
+            if args.json:
+                generate_json(all_motifs) 
     except IOError:
         print ("File not found.")
         exit()
@@ -384,12 +415,15 @@ if args.genbank:
             print("\nFetching genbank data from " + gb + "\n")
             time.sleep(1) #Required to not go over the 3 queries/second threshold imposed by Entrez
             motifs = parse_genbank(gb, email)
-            if args.select:
-                print_motifs(motifs, args.select)
+            if args.trna:
+                pass
             else:
-                print_motifs(motifs, args.select)
-            if args.json:
-                generate_json(motifs)
+                if args.select:
+                    print_motifs(motifs, args.select)
+                else:
+                    print_motifs(motifs, args.select)
+                if args.json:
+                    generate_json(motifs)
         except IOError:
             print("Error while parsing accession number. Exiting.")
             exit()
