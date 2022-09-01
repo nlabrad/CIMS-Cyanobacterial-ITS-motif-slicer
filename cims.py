@@ -49,7 +49,7 @@ def print_motifs(motif_list):
         print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
     else:
         for key in motif_list:
-            if motif_list[key] is None:
+            if motif_list[key] is None: #If the key is empty
                 if (key == "tRNA_ile" or key == "tRNA_ala"):
                     print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
                     print("\n")  
@@ -57,13 +57,16 @@ def print_motifs(motif_list):
                     print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
                     print("\n")
             else:
-                if len(motif_list[key]) > 1:
+                if len(motif_list[key]) > 1: #Check if there is more than one sequence in that key
                     print(Fore.CYAN + Style.BRIGHT + key + " \n\t" +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found! \n")     
                     for index, item in enumerate(motif_list[key]):
                         print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
                             Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
                 else:
-                    print(Fore.CYAN + Style.BRIGHT + key + ":")
+                    if key is list(motif_list.keys())[0]:
+                        print(Fore.CYAN + Style.BRIGHT + key + " ITS Region:")
+                    else:
+                        print(Fore.CYAN + Style.BRIGHT + key + ":")
                     for item in motif_list[key]:
                         print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
                             Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
@@ -203,7 +206,7 @@ def slice_motifs(seq_input, organism_name):
                 "d1d1" : [],
                 "sp_d2d3_sp" : [],
                 "tRNA_ile" : [],
-                "v2" : [],
+                "sp_v2_sp" : [],
                 "tRNA_ala" : [],
                 "BoxB" : [],
                 "BoxA" : [],
@@ -256,9 +259,9 @@ def slice_motifs(seq_input, organism_name):
     trna_ala = get_motif("GGGG", "[TC]CTCCA", its_seq, 70, 80)
     if trna_ala is None:
         motifs["tRNA_ala"] = None
-        motifs["v2"] = None
+        motifs["sp_v2_sp"] = None
     else: 
-        motifs["v2"].append(its_seq[0:its_seq.find(trna_ala[0])]) #everything between end of tRNA_ile and start of tRNA_ala
+        motifs["sp_v2_sp"].append(its_seq[0:its_seq.find(trna_ala[0])]) #everything between end of tRNA_ile and start of tRNA_ala
         for seq in trna_ala:
             motifs["tRNA_ala"].append(seq)
         its_seq = its_seq[its_seq.rindex(motifs["tRNA_ala"][-1]):] #trim processed its region
@@ -324,7 +327,7 @@ parser.add_argument('-m',
                     help = "Select which motifs to extract",
                     default = "all",
                     nargs="*", #Expects 0 or more values, if none, then default applies.
-                    choices=('leader', 'd1d1', 'v2', 'trna1', 'trna2', 'boxa', 'boxb', 'd4', 'v3', 'all')
+                    choices=('leader', 'd1d1', 'sp_v2_sp', 'trna1', 'trna2', 'boxa', 'boxb', 'd4', 'v3', 'all')
                     )
 parser.add_argument('-e',
                     '--email',
