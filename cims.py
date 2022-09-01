@@ -1,3 +1,6 @@
+"""
+Slices motifs out of an ITS Region sequence
+"""
 import os
 import re
 import sys
@@ -106,11 +109,11 @@ def parse_fasta(fasta_string):
     Returns:
         list: list with all the organisms in the fasta file
     """
-    all_motifs = []
+    sliced_organisms = []
     for seq_record in SeqIO.parse(fasta_string, "fasta"): #for each entry do the below.
         sliced_motifs = slice_motifs(str(seq_record.seq), seq_record.id) #store the sliced motifs, pass the sequence and the organism name
-        all_motifs.append(sliced_motifs)
-    return all_motifs
+        sliced_organisms.append(sliced_motifs)
+    return sliced_organisms
 
 def get_d1d1(start, end, seq):
     """ Algorithm to search for d1d1 motif
@@ -174,15 +177,15 @@ def slice_its_region(seq_input):
         int: start position of the ITS region (index relative to the raw sequence provided)
     """
     min_length = 20 #Used to filter out bad results.
-    global PICO_CYANO_FLAG
+    pico = False
     its_seq_search = re.search(r"CCTCCTT", seq_input)
     if its_seq_search is None:
         its_seq_search = re.search(r"CCTCCTA", seq_input)
         if its_seq_search:
-            PICO_CYANO_FLAG = 1
+            pico = True
     if its_seq_search is None:
         print(Fore.YELLOW + "\nWARN: Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
-        return seq_input
+        return seq_input, pico
     else:
         if len(seq_input[its_seq_search.start():]) < min_length:
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
@@ -200,31 +203,30 @@ def slice_motifs(seq_input, organism_name):
         dict: dictionary with motifs. Key: motif name, value: motif sequence(s) (list)
     """
     
-    its_start_position = 0#ITS region start index relative to the fasta/genbank supplied sequence
-    global PICO_CYANO_FLAG #Used to identify picocyano d1d1 starts.
-    PICO_CYANO_FLAG = 0
-    motifs = { organism_name : [],
-                "leader" : [],
-                "d1d1" : [],
-                "sp_d2d3_sp" : [],
-                "tRNA_ile" : [],
-                "sp_v2_sp" : [],
-                "tRNA_ala" : [],
-                "BoxB" : [],
-                "BoxA" : [],
-                "D4" : [],
-                "V3" : []
-                }
+    motifs = { 
+              organism_name : [],
+              "leader" : [],
+              "d1d1" : [],
+              "sp_d2d3_sp" : [],
+              "tRNA_ile" : [],
+              "sp_v2_sp" : [],
+              "tRNA_ala" : [],
+              "BoxB" : [],
+              "BoxA" : [],
+              "D4" : [],
+              "V3" : []
+              }
 
     print(Fore.WHITE + "\nSlicing " + str(organism_name) +"...")
-    its_seq = slice_its_region(seq_input) #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
+    
+    its_seq, pico = slice_its_region(seq_input)[0], slice_its_region(seq_input)[1] #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
     if its_seq == -1:
         print (Back.RED + Fore.WHITE + "Found ITS Region length is too short (not accurate). Skipping\n" + str(organism_name))
         return None
 
     motifs[organism_name].append(its_seq) #store the whole ITS region sequence in the dict. This one does not change with the search.
     
-    if PICO_CYANO_FLAG == 1: # Change D1D1 start if we are dealing with a picocyano. 
+    if pico == True: # Change D1D1 start if we are dealing with a picocyano. 
         d1d1 = get_d1d1("GACAA", r"[AT]TGTC", its_seq)
     else:
         d1d1 = get_d1d1("GACCT", r"AGGTC", its_seq)
@@ -331,9 +333,6 @@ def trna_check(motifs):
     else:
         print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
 
-    
-global PICO_CYANO_FLAG
-PICO_CYANO_FLAG = 0
 #Main
 # Create the parser
 parser = argparse.ArgumentParser(
