@@ -49,7 +49,7 @@ def print_motifs(motif_list, print_list):
         print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
     else:
         for key in motif_list:
-            if (key in print_list or print_list == "all"):
+            if (str(key) in print_list or "all" in print_list):
                 if motif_list[key] is None: #If the key is empty
                     if (key == "tRNA_ile" or key == "tRNA_ala"):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
@@ -339,6 +339,11 @@ parser.add_argument('-j',
                     help = 'Outputs a json file with all the motifs',
                     action='store_true'
                     )
+parser.add_argument('-o',
+                   '--operon',
+                   help = 'Returns how many tRNAs are found to use for homologous operon verification.',
+                   action='store_true'
+                   )
 
 #Process the arguments
 if len(sys.argv) == 1: #If there is no argument then print the help
@@ -357,6 +362,8 @@ if args.fasta:
             print_motifs(motifs, args.select)
         if args.json:
             generate_json(motifs) 
+                
+                    
     except IOError:
         print ("File not found.")
         exit()
@@ -383,8 +390,6 @@ if args.genbank:
                 print_motifs(motifs, args.select)
             if args.json:
                 generate_json(motifs)
-            
-            
         except IOError:
             print("Error while parsing accession number. Exiting.")
             exit()
