@@ -366,9 +366,15 @@ parser.add_argument('-j',
                     help = 'Outputs a json file with all the motifs',
                     action='store_true'
                     )
+<<<<<<< HEAD
 parser.add_argument('-t',
                    '--trna',
                    help = 'Returns ONLY how many tRNAs are found to use for homologous operon verification.',
+=======
+parser.add_argument('-o',
+                   '--operon',
+                   help = 'Returns how many tRNAs are found to use for homologous operon verification.',
+>>>>>>> 2e64697 (I think I fixed a bug, idk.)
                    action='store_true'
                    )
 
@@ -382,6 +388,7 @@ if args.fasta:
     try:
         fasta = open(args.fasta, "r", encoding="UTF-8")
         print("Processing fasta file...")
+<<<<<<< HEAD
         all_motifs = parse_fasta(fasta)
         if args.trna:
             for organism in all_motifs:
@@ -395,6 +402,17 @@ if args.fasta:
                     print_motifs(organism, args.select)
             if args.json:
                 generate_json(all_motifs) 
+=======
+        motifs = parse_fasta(fasta)
+        if args.select:
+            print_motifs(motifs, args.select)
+        else:
+            print_motifs(motifs, args.select)
+        if args.json:
+            generate_json(motifs) 
+                
+                    
+>>>>>>> 2e64697 (I think I fixed a bug, idk.)
     except IOError:
         print ("File not found.")
         exit()
@@ -418,12 +436,18 @@ if args.genbank:
             if args.trna:
                 pass
             else:
+<<<<<<< HEAD
                 if args.select:
                     print_motifs(motifs, args.select)
                 else:
                     print_motifs(motifs, args.select)
                 if args.json:
                     generate_json(motifs)
+=======
+                print_motifs(motifs, args.select)
+            if args.json:
+                generate_json(motifs)
+>>>>>>> 2e64697 (I think I fixed a bug, idk.)
         except IOError:
             print("Error while parsing accession number. Exiting.")
             exit()
