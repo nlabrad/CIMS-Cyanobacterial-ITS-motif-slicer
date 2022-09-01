@@ -16,8 +16,6 @@ colorama.init(autoreset=True)
 #TODO: add logging.
 #TODO: option to create CSV
 #TODO: HTML with highlighted motif text
-#TODO: option to select just one motif from given seq instead of all the motifs.
-#TODO: option to exclude ones without tRNAs, or alternatively, just include those with both tRNAs
 
 def generate_json(motif_list):
     """Generates json file from the dictionary argument (usually the motifs)
