@@ -39,7 +39,7 @@ def check_email(user_email):
     valid_email_format = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     return re.fullmatch(valid_email_format, user_email)
 
-def print_motifs(motif_list):
+def print_motifs(motif_list, print_list):
     """Gets the dict of motifs and prints them out in the terminal
 
     Args:
@@ -49,27 +49,28 @@ def print_motifs(motif_list):
         print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
     else:
         for key in motif_list:
-            if motif_list[key] is None: #If the key is empty
-                if (key == "tRNA_ile" or key == "tRNA_ala"):
-                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
-                    print("\n")  
-                else: 
-                    print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
-                    print("\n")
-            else:
-                if len(motif_list[key]) > 1: #Check if there is more than one sequence in that key
-                    print(Fore.CYAN + Style.BRIGHT + key + " \n\t" +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found! \n")     
-                    for index, item in enumerate(motif_list[key]):
-                        print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
-                else:
-                    if key is list(motif_list.keys())[0]:
-                        print(Fore.CYAN + Style.BRIGHT + key + " ITS Region:")
+            if (key in print_list or print_list == "all"):
+                if motif_list[key] is None: #If the key is empty
+                    if (key == "tRNA_ile" or key == "tRNA_ala"):
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
+                        print("\n")
                     else:
-                        print(Fore.CYAN + Style.BRIGHT + key + ":")
-                    for item in motif_list[key]:
-                        print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
-                            Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                        print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not found in this sequence.")
+                        print("\n")
+                else:
+                    if len(motif_list[key]) > 1: #Check if there is more than one sequence in that key
+                        print(Fore.CYAN + Style.BRIGHT + key + " \n\t" +Fore.RED + Style.BRIGHT + str(len(motif_list[key])) + " possible sequences found! \n")     
+                        for index, item in enumerate(motif_list[key]):
+                            print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + str(index+1) + ": " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+                    else:
+                        if key is list(motif_list.keys())[0]:
+                            print(Fore.CYAN + Style.BRIGHT + key + " ITS Region:")
+                        else:
+                            print(Fore.CYAN + Style.BRIGHT + key + ":")
+                        for item in motif_list[key]:
+                            print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
+                                Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
 
 def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with accession#
     """ Gets fasta file from genbank to be processed
@@ -109,7 +110,6 @@ def parse_fasta(fasta_string):
         print('\n')
         sliced_motifs = slice_motifs(str(seq_record.seq), seq_record.id)
         all_motifs.append(sliced_motifs)
-        print_motifs(sliced_motifs)
     return all_motifs
 
 def get_d1d1(start, end, seq):
@@ -322,8 +322,8 @@ group.add_argument('-g',
                    help = "Fetch a sequence from a given genbank accession number.",
                    nargs='+',
                    )
-parser.add_argument('-m',
-                    '--motif',
+parser.add_argument('-s',
+                    '--select',
                     help = "Select which motifs to extract",
                     default = "all",
                     nargs="*", #Expects 0 or more values, if none, then default applies.
@@ -351,6 +351,10 @@ if args.fasta:
         fasta = open(args.fasta, "r", encoding="UTF-8")
         print("Processing fasta file...")
         motifs = parse_fasta(fasta)
+        if args.select:
+            print_motifs(motifs, args.select)
+        else:
+            print_motifs(motifs, args.select)
         if args.json:
             generate_json(motifs) 
     except IOError:
@@ -373,9 +377,13 @@ if args.genbank:
             print("\nFetching genbank data from " + gb + "\n")
             time.sleep(1) #Required to not go over the 3 queries/second threshold imposed by Entrez
             motifs = parse_genbank(gb, email)
+            if args.select:
+                print_motifs(motifs, args.select)
+            else:
+                print_motifs(motifs, args.select)
             if args.json:
                 generate_json(motifs)
-            print_motifs(motifs)
+            
             
         except IOError:
             print("Error while parsing accession number. Exiting.")
