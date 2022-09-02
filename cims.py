@@ -8,7 +8,6 @@ import argparse
 import json
 import time
 import colorama
-
 from Bio import Entrez, SeqIO #import the required libraries
 from colorama import Fore, Back, Style
 colorama.init(autoreset=True)
@@ -130,6 +129,8 @@ def get_d1d1(start, end, seq):
     if d1d1_start_position == -1: #If the start position is not found, return None to the main program
         return None
     end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
+    if len(list(end_matches)) == 0:
+       return None 
     for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
         d1d1_results.append(seq[d1d1_start_position:match.end()])
     return d1d1_results
