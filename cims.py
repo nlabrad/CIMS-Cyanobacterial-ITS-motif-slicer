@@ -55,7 +55,7 @@ def print_motifs(motif_list, print_list):
             print(Fore.LIGHTGREEN_EX + '-', end = '')
         print('\n\n')
         for key in motif_list:
-            if (str(key) in print_list or "all" in print_list):
+            if (str(key).lower() in print_list or "all" in print_list):
                 if motif_list[key] is None: #If the key is empty
                     if (key == "tRNA_ile" or key == "tRNA_ala"):
                         print(Fore.LIGHTCYAN_EX + Style.BRIGHT + key + Fore.RED + " Not present in this operon.")
@@ -124,12 +124,12 @@ def get_d1d1(start, end, seq):
     Returns:
         list: list containing all the possible d1d1 sequences.
     """
+    d1d1_results = []
     d1d1_search_area = seq[0:150] # Limits the area in which the d1d1 region is found, usually.
     d1d1_start_position = d1d1_search_area.find(start, 0, 20)# Find where the starting pattern is at. Limit to the first 20 bases.
     if d1d1_start_position == -1: #If the start position is not found, return None to the main program
         return None
     end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
-    d1d1_results = []
     for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
         d1d1_results.append(seq[d1d1_start_position:match.end()])
     return d1d1_results
@@ -214,8 +214,6 @@ def slice_motifs(seq_input, organism_name):
               "D4" : [],
               "V3" : []
               }
-
-    print(Fore.WHITE + "\nSlicing " + str(organism_name) +"...")
     
     its_seq, pico = slice_its_region(seq_input)[0], slice_its_region(seq_input)[1] #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
     if its_seq == -1:
@@ -235,7 +233,7 @@ def slice_motifs(seq_input, organism_name):
         if d1d1 is None:
             d1d1 = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
 
-    if d1d1 is None:
+    if d1d1 is None or len(d1d1) == 0:
         motifs["leader"] = None
         motifs["d1d1"] = None
     else:
@@ -351,7 +349,7 @@ parser.add_argument('-s',
                     help = "Select which motifs to extract",
                     default = "all",
                     nargs="*", #Expects 0 or more values, if none, then default applies.
-                    choices=('leader', 'd1d1', 'sp_v2_sp', 'trna1', 'trna2', 'boxa', 'boxb', 'd4', 'v3', 'all')
+                    choices=('leader', 'd1d1', 'sp_v2_sp', 'trna_ile', 'trna_ala', 'boxa', 'boxb', 'd4', 'v3', 'all')
                     )
 parser.add_argument('-e',
                     '--email',
