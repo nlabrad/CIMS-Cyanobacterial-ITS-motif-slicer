@@ -267,9 +267,9 @@ def slice_motifs(seq_input, organism_name):
         its_seq = its_seq[its_seq.rindex(motifs["tRNA_ala"][-1]):] #trim processed its region
 
     #find BoxB
-    boxb = get_motif("CAGC","GCTG", its_seq, 10, 50)
+    boxb = get_motif("CAGC","GCTG", its_seq, 18, 50)
     if boxb is None:
-        boxb = get_motif("AGCA","CTG", its_seq, 10, 50)
+        boxb = get_motif("AGCA","CTG", its_seq, 18, 50)
     if boxb is None:
         motifs["BoxB"] = None
     else:
