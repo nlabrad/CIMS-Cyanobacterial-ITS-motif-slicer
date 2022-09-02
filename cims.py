@@ -188,7 +188,7 @@ def slice_its_region(seq_input):
         if len(seq_input[its_seq_search.start():]) < min_length:
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
             return -1
-        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700]
+        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700], pico
 
 def slice_motifs(seq_input, organism_name):
     """Main function that coordinates the calls to find all the motifs. Contains the motif patterns
@@ -224,7 +224,7 @@ def slice_motifs(seq_input, organism_name):
 
     motifs[organism_name].append(its_seq) #store the whole ITS region sequence in the dict. This one does not change with the search.
     
-    if pico == True: # Change D1D1 start if we are dealing with a picocyano. 
+    if pico is True: # Change D1D1 start if we are dealing with a picocyano. 
         d1d1 = get_d1d1("GACAA", r"[AT]TGTC", its_seq)
     else:
         d1d1 = get_d1d1("GACCT", r"AGGTC", its_seq)
