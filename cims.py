@@ -326,9 +326,9 @@ def trna_check(motifs):
     else:
         print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
     if (trnas['tRNA_ala'] == 'Found'):
-        print(Fore.GREEN + "tRNA1: " + trnas['tRNA_ile'])
+        print(Fore.GREEN + "tRNA2: " + trnas['tRNA_ala']) # CHANGED CODE HERE TO OUTPUT ALA INSTEAD OF ILE AGAIN - CAM 
     else:
-        print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
+        print(Fore.RED + "tRNA2: " + trnas['tRNA_ala'])
 
 #Main
 # Create the parser
