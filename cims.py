@@ -46,13 +46,9 @@ def print_motifs(motif_list, print_list):
         motifs (dict): list of motifs to print
     """
     if motif_list is None:
-        print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence!")
+        print(Back.RED + Fore.WHITE + "ITS Region not found in this sequence.")
     else:
-        terminal_width = os.get_terminal_size()[0]
-        print(Fore.LIGHTGREEN_EX)
-        for x in range(terminal_width):
-            print(Fore.LIGHTGREEN_EX + '-', end = '')
-        print('\n\n')
+        print(Fore.WHITE + Style.BRIGHT + list(motif_list.keys())[0])
         for key in motif_list:
             if (str(key).lower() in print_list or "all" in print_list):
                 if motif_list[key] is None: #If the key is empty
@@ -70,12 +66,17 @@ def print_motifs(motif_list, print_list):
                                 Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
                     else:
                         if key is list(motif_list.keys())[0]:
-                            print(Fore.CYAN + Style.BRIGHT + key + " ITS Region:")
+                            print(Fore.CYAN + Style.BRIGHT + "ITS Region:")
                         else:
                             print(Fore.CYAN + Style.BRIGHT + key + ":")
                         for item in motif_list[key]:
                             print(Fore.MAGENTA + Style.BRIGHT +  "\tSequence " + Fore.LIGHTYELLOW_EX + Style.NORMAL + str(item) + 
                                 Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "\n\tLength: " + Style.NORMAL + Fore.LIGHTYELLOW_EX + str(len(item)) + "\n")
+    terminal_width = os.get_terminal_size()[0]
+    print(Fore.LIGHTGREEN_EX)
+    for x in range(terminal_width):
+        print(Fore.LIGHTGREEN_EX + '-', end = '')
+    print('\n\n')
 
 def parse_genbank(accession, valid_email): #fetch sequence and taxonomy with accession#
     """ Gets fasta file from genbank to be processed
@@ -124,8 +125,8 @@ def get_d1d1(start, end, seq):
         list: list containing all the possible d1d1 sequences.
     """
     d1d1_results = []
-    d1d1_search_area = seq[0:150] # Limits the area in which the d1d1 region is found, usually.
-    d1d1_start_position = d1d1_search_area.find(start, 0, 20)# Find where the starting pattern is at. Limit to the first 20 bases.
+    d1d1_search_area = seq[0:185] # Limits the area in which the d1d1 region is found, usually.
+    d1d1_start_position = d1d1_search_area.find(start, 0, 65)# Find where the starting pattern is at. Limit to the first 20 bases.
     if d1d1_start_position == -1: #If the start position is not found, return None to the main program
         return None
     end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
@@ -135,7 +136,7 @@ def get_d1d1(start, end, seq):
         d1d1_results.append(seq[d1d1_start_position:match.end()])
     return d1d1_results
 
-def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
+def get_motif(start_pattern, end_pattern, seq, min_length=4, max_length=200):
     
     """Searches for the possible motifs given basal clamps in the arguments.
     Args: 
@@ -148,7 +149,6 @@ def get_motif(start_pattern, end_pattern, seq, min_length=1, max_length=200):
     Returns:
         list: list of possible sequences.
     """
-    
     motif_results = []
     while len(seq):
         start_match = re.search(start_pattern, seq)
@@ -176,20 +176,17 @@ def slice_its_region(seq_input):
         int: start position of the ITS region (index relative to the raw sequence provided)
     """
     min_length = 20 #Used to filter out bad results.
-    pico = False
     its_seq_search = re.search(r"CCTCCTT", seq_input)
     if its_seq_search is None:
         its_seq_search = re.search(r"CCTCCTA", seq_input)
-        if its_seq_search:
-            pico = True
     if its_seq_search is None:
         print(Fore.YELLOW + "\nWARN: Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
-        return seq_input, pico
+        return seq_input
     else:
         if len(seq_input[its_seq_search.start():]) < min_length:
             print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
             return -1
-        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700], pico
+        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700]
 
 def slice_motifs(seq_input, organism_name):
     """Main function that coordinates the calls to find all the motifs. Contains the motif patterns
@@ -216,23 +213,23 @@ def slice_motifs(seq_input, organism_name):
               "V3" : []
               }
     
-    its_seq, pico = slice_its_region(seq_input)[0], slice_its_region(seq_input)[1] #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
+    its_seq = slice_its_region(seq_input) #Sequence to be used for the motif search. Found motifs get removed from the seq before moving on to the next one.
     if its_seq == -1:
         print (Back.RED + Fore.WHITE + "Found ITS Region length is too short (not accurate). Skipping\n" + str(organism_name))
         return None
 
     motifs[organism_name].append(its_seq) #store the whole ITS region sequence in the dict. This one does not change with the search.
     
-    if pico is True: # Change D1D1 start if we are dealing with a picocyano. 
-        d1d1 = get_d1d1("GACAA", r"[AT]TGTC", its_seq)
-    else:
-        d1d1 = get_d1d1("GACCT", r"AGGTC", its_seq)
-        if d1d1 is None:
-            d1d1 = get_d1d1("GACCA", r"[AT]GGTC", its_seq)
-        if d1d1 is None:
-            d1d1 = get_d1d1("GACCG", r"[AC]GGTC", its_seq)
-        if d1d1 is None:
-            d1d1 = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
+    
+    d1d1 = get_d1d1("GACCT", r"AGGTC", its_seq)
+    if d1d1 is None:
+        d1d1 = get_d1d1("GACCA", r"[AT]GGTC", its_seq)
+    if d1d1 is None:
+        d1d1 = get_d1d1("GACCG", r"[AC]GGTC", its_seq)
+    if d1d1 is None:
+        d1d1 = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
+    if d1d1 is None:
+        d1d1 = get_d1d1("GACAA", r"[AT]TGTC", its_seq) #pico cyano?
 
     if d1d1 is None or len(d1d1) == 0:
         motifs["leader"] = None
@@ -377,7 +374,7 @@ args = parser.parse_args()#Parse the arguments, store them in args.
 if args.fasta:
     try:
         fasta = open(args.fasta, "r", encoding="UTF-8")
-        print("Processing fasta file...")
+        print("Processing fasta file...\n")
         all_motifs = parse_fasta(fasta)
         if args.trna:
             for organism in all_motifs:
