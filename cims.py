@@ -113,7 +113,7 @@ def parse_fasta(fasta_string):
         sliced_organisms.append(sliced_motifs)
     return sliced_organisms
 
-def get_d1d1(start, end, seq):
+def get_d1d1(start_pattern, end_pattern, sequence):
     """ Algorithm to search for d1d1 motif
 
     Args:
@@ -125,15 +125,15 @@ def get_d1d1(start, end, seq):
         list: list containing all the possible d1d1 sequences.
     """
     d1d1_results = []
-    d1d1_search_area = seq[0:185] # Limits the area in which the d1d1 region is found, usually.
-    d1d1_start_position = d1d1_search_area.find(start, 0, 65)# Find where the starting pattern is at. Limit to the first 20 bases.
-    if d1d1_start_position == -1: #If the start position is not found, return None to the main program
+    d1d1_search_area = sequence[0:150] # Limits the area in which the d1d1 region is usually found.
+    d1d1_start_position = d1d1_search_area.find(start_pattern, 0, 20)
+    if d1d1_start_position == -1:
         return None
-    end_matches = re.finditer(end, d1d1_search_area)#Find all the matching bases to the pattern in the argument passed to the function (end)
-    if len(list(end_matches)) == 0:
-       return None 
+    end_matches = re.finditer(end_pattern, d1d1_search_area) 
     for match in end_matches: #For each match, add the end position to the d1d1_results array as a (start,end) tuple.
-        d1d1_results.append(seq[d1d1_start_position:match.end()])
+        d1d1_results.append(sequence[d1d1_start_position:match.end()])
+    if len(d1d1_results) == 0:
+        return None
     return d1d1_results
 
 def get_motif(start_pattern, end_pattern, seq, min_length=4, max_length=200):
@@ -182,11 +182,11 @@ def slice_its_region(seq_input):
     if its_seq_search is None:
         print(Fore.YELLOW + "\nWARN: Could not find the end of 16S to determine the ITS region boundaries. Results may be inaccurate.")
         return seq_input
-    else:
-        if len(seq_input[its_seq_search.start():]) < min_length:
-            print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
-            return -1
-        return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700]
+    
+    if len(seq_input[its_seq_search.start():]) < min_length:
+        print (Back.RED + Fore.WHITE + "Region length too short. Skipping this sequence.")
+        return -1
+    return seq_input[its_seq_search.start() + 7: its_seq_search.start() + 700]
 
 def slice_motifs(seq_input, organism_name):
     """Main function that coordinates the calls to find all the motifs. Contains the motif patterns
@@ -230,6 +230,8 @@ def slice_motifs(seq_input, organism_name):
         d1d1 = get_d1d1("GACCC", r"[AC]GGTC", its_seq)
     if d1d1 is None:
         d1d1 = get_d1d1("GACAA", r"[AT]TGTC", its_seq) #pico cyano?
+    if d1d1 is None:
+        d1d1 = get_d1d1("GACTT", r"[AT]GGTC", its_seq)
 
     if d1d1 is None or len(d1d1) == 0:
         motifs["leader"] = None
