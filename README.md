@@ -11,16 +11,16 @@ This tool has been created to skim through and find the commonly used ITS foldin
    ### The program will return the entire ITS sequence and a list of ITS motifs, the corresponding motif sequences, and the motif lengths. In the current version of the software, the motifs included in the standard output are:
                   •	Leader
                   •	D1-D1`
+                  •	Spacer – D2 – Spacer 
                   •	tRNA-ala
+                  •	Spacer – V2 - Spacer
                   •	tRNA- ile 
                   •	Box B 
-                  
-   ### The "full" output will also include the motifs below however as of now finding these motifs is less reliable so use at your own discretion. 
-                  •	Spacer – D2 – Spacer 
-                  •	Spacer – V2 - Spacer
                   •	D4
                   •	BoxA 
                   •	V3 
+                  
+   ### If you would like to only include certain motifs in your output, add the select flag (-s) with a list of motifs that you would like in your output. 
 
 ## How to use this software: 
 The input for this tool must either be a fasta file with one or more properly formatted 16s-23s ITS sequences or a Genbank accession number to a 16s-23s ITS sequence. When running this on your terminal the output will include all motifs found in the sequences given to the program. If you would like to save the output of your run remember to use “>>” to save output into a text file. 
