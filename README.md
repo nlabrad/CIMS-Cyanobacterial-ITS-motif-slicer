@@ -5,11 +5,12 @@ Dedicated to the cyanobacteria researches who spend many hours highlighting moti
 
 Table of content
 ========
- * [Why?](#why)
+ * [Why did we make CIMS?](#why)
  * [What does it do again?](#what)
  * [Installation](#installation)
  * [Usage](#usage)
  * [Possible Errors](#possible-errors)
+ * Thanks
 
 
 ### Why did we make this tool?
@@ -130,14 +131,16 @@ Result: Fetches the sequence from Genbank, and returns how many tRNAs were found
 
 ### Possible errors: 
 
-#### 1. “Could not find the end of 16S to determine the ITS region boundaries”  ```
+#### 1. ```“Could not find the end of 16S to determine the ITS region boundaries”```
 This error means that the sequence given to the software did not contain the sequence that represents the end of the 16S region (CCTCCTT). You may proceed with the run if you have fed the program the ITS region only and everything will run as normal otherwise, abort the run for that sequence by typing “N” when prompted “Proceed with search anyway? (Y/N)”. This will allow the program to move onto the next sequence in the fasta file or allow you to try again with another file/accession #. 
 
-#### 3. “Region length too short. Skipped.”
+#### 3. ```“Region length too short. Skipped.”```
 This will be printed if the ITS region after the end of the 16S gene is under 20bps. This feature is coded to remove sequences with ITS regions that are too small to be used to find any of the motifs. 
 
-#### 4. “Not found in this sequence.” 
+#### 4. ```“Not found in this sequence.” ```
 This output will be printed when a particular motif was not found in the ITS sequence. This could be because the flanking regions are unique or otherwise rare and so the software did not find these. If this happens frequently in your dataset, please report this to us in the “Issues” page of the GitHub so that we can address this error and improve the code.
 
-#### 5. “Not present in this operon” 
+#### 5. ```“Not present in this operon” ```
 This will be printed only regarding tRNAs in the sequence. If the program does not find tRNA-ala or tRNA-ile, it will assume that this operon        does not contain one or both tRNAs. Remember, it is best to use homologous operons when comparing ITS motifs between taxa (ie. Operons containing        the same number of tRNAs). 
+
+
