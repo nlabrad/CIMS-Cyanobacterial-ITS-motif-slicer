@@ -22,15 +22,16 @@
 ---
   The 16S-23S rRNA internal transcribed spacer (ITS) is a commonly employed phylogenetic marker in cyanobacterial systematics. Examination of ITS regions allows researchers to discover congruencies and apomorphies between species of cyanobacteria. This gives the researcher more evidence when erecting new cryptic taxon or analyzing previously unresolved taxonomic relationships. The challenge however is that historically researchers must manually dig through sequence data to visually find and identify ITS sequence motifs. This painstaking process deters researchers from using ITS motifs, leads to errors, and not to mention… causes headaches.
 
-  We knew there was a better way to do this, so after dissecting the manual process, we created *CIMS*. 
+  We knew there was a better way to do this, so after dissecting the manual process, we created ```CIMS```.
+  
   CIMS finds the commonly used ITS folding motifs such as D1-D1’, Box B, tRNA-ile and tRNA-ala to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
 
 
 ### What does it do again?
 ---
 + CIMS is a terminal application written in Python that 
-+ CIMS can process one or more Genbank accession numbers or a fasta file with one or more sequences. 
-+ It automatically talks to Genbank for you so you don't have to download the fasta files yourself.
++ Can process one or more Genbank accession numbers or a fasta file with one or more sequences. 
++ Automatically talks to Genbank for you so you don't have to download the fasta files yourself.
 + Returns a text output with the motifs identified and their lenghts for you to use as you please.
 
 In the current version of the software, the motifs included in the standard output are:
@@ -103,12 +104,12 @@ In the current version of the software, the motifs included in the standard outp
   The list of flags, arguments and their descriptions are below:
 
   ```shell
-  Usage: cims [OPTIONS]
+  Usage: cims [-f or -g] [file or accession number] [OPTIONS]
 
   Options:
   -f, --fasta PATH-TO-FASTA-FILE                                             Provide FASTA to be processed.
   -g, --genbank ACCESSION1 [ACCESSION2 ...]                                  Provide one or more Genbank Accession Numbers to fetch and process.
-  -s, --select {{leader,d1d1,sp_v2_sp,trna_ile,trna_ala,boxa,boxb,d4,v3,all} Select which motifs to print out. By default it prints all.
+  -s, --select {leader,d1d1,sp_v2_sp,trna_ile,trna_ala,boxa,boxb,d4,v3,all}  Select which motifs to print out. By default it prints all.
   -e, --email                                                                Provide an email to be used when querying Genbank. An NCBI requirement.
   -j, --json                                                                 Create a json file in the working directory with the output.
   -t, --trna                                                                 Returns ONLY how many tRNAs were found per sequence. 
