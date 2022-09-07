@@ -19,7 +19,7 @@
 
 
 ### Why did we make this tool?
-
+---
   The 16S-23S rRNA internal transcribed spacer (ITS) is a commonly employed phylogenetic marker in cyanobacterial systematics. Examination of ITS regions allows researchers to discover congruencies and apomorphies between species of cyanobacteria. This gives the researcher more evidence when erecting new cryptic taxon or analyzing previously unresolved taxonomic relationships. The challenge however is that historically researchers must manually dig through sequence data to visually find and identify ITS sequence motifs. This painstaking process deters researchers from using ITS motifs, leads to errors, and not to mention… causes headaches.
 
   We knew there was a better way to do this, so after dissecting the manual process, we created *CIMS*. 
@@ -27,7 +27,7 @@
 
 
 ### What does it do again?
-
+---
 + CIMS is a terminal application written in Python that 
 + CIMS can process one or more Genbank accession numbers or a fasta file with one or more sequences. 
 + It automatically talks to Genbank for you so you don't have to download the fasta files yourself.
@@ -46,7 +46,7 @@ In the current version of the software, the motifs included in the standard outp
   +	V3 
                   
 ### Installation
-
+---
 
   #### Pre-Requisites
   We get it, you're a biologist, we got you. All you need is beginner level of terminal... maybe not even that much. If you know how to browse to a directory (```cd```) and run an executable(```./cims```), you're good to go.
@@ -79,7 +79,7 @@ In the current version of the software, the motifs included in the standard outp
   Once you have those dependencies installed (either globally or in a virtual environment), simply run cims.py.
 
 ### Usage
-
+---
   CIMS runs in the terminal. It is provided a sequence either through a FASTA file or by fetching them from Genbank based on accession numbers.
   The input for this tool must either be a fasta file with one or more properly formatted 16s-23s ITS sequences or a Genbank accession number to a 16s-23s ITS sequence.
 
@@ -134,7 +134,7 @@ In the current version of the software, the motifs included in the standard outp
   >If you ever get lost, you can always run ```cims -h``` or ```python cims.py -h``` and you will get a quick reference of the available options.
 
 ### Possible errors: 
-
+---
   #### 1. ```“Could not find the end of 16S to determine the ITS region boundaries”```
   This error means that the sequence given to the software did not contain the sequence that represents the end of the 16S region (CCTCCTT). You may proceed with the run if you have fed the program the ITS region only and everything will run as normal otherwise, abort the run for that sequence by typing “N” when prompted “Proceed with search anyway? (Y/N)”. This will allow the program to move onto the next sequence in the fasta file or allow you to try again with another file/accession #. 
 
