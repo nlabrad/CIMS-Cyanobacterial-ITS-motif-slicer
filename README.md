@@ -8,7 +8,7 @@
 
 </div>
 
-Table of content
+### Table of content
 ========
  * [Why did we make CIMS?](#why)
  * [What does it do again?](#what)
