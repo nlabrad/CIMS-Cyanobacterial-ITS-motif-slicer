@@ -20,10 +20,10 @@ Dedicated to the cyanobacteria researches who spend many hours highlighting moti
 
 ### Why did we make this tool?
 
-The 16S-23S rRNA internal transcribed spacer (ITS) is a commonly employed phylogenetic marker in cyanobacterial systematics. Examination of ITS regions allows researchers to discover congruencies and apomorphies between species of cyanobacteria. This gives the researcher more evidence when erecting new cryptic taxon or analyzing previously unresolved taxonomic relationships. The challenge however is that historically researchers must manually dig through sequence data to visually find and identify ITS sequence motifs. This painstaking process deters researchers from using ITS motifs, leads to errors, and not to mention… causes headaches.
+  The 16S-23S rRNA internal transcribed spacer (ITS) is a commonly employed phylogenetic marker in cyanobacterial systematics. Examination of ITS regions allows researchers to discover congruencies and apomorphies between species of cyanobacteria. This gives the researcher more evidence when erecting new cryptic taxon or analyzing previously unresolved taxonomic relationships. The challenge however is that historically researchers must manually dig through sequence data to visually find and identify ITS sequence motifs. This painstaking process deters researchers from using ITS motifs, leads to errors, and not to mention… causes headaches.
 
-We knew there was a better way to do this, so after dissecting the manual process, we created *CIMS*. 
-CIMS finds the commonly used ITS folding motifs such as D1-D1’, Box B, tRNA-ile and tRNA-ala to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
+  We knew there was a better way to do this, so after dissecting the manual process, we created *CIMS*. 
+  CIMS finds the commonly used ITS folding motifs such as D1-D1’, Box B, tRNA-ile and tRNA-ala to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
 
 
 ### What does it do again?
