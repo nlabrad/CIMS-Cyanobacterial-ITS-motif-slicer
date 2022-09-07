@@ -3,8 +3,8 @@
 
 # CIMS: Cyanobacterial ITS Motif Slicer
 
-CIMS is a tool to extract the commonly used ITS folding motifs from a 16s-23s rRNA sequence. It takes a fasta or at least one Genbank accession number and returns a list of motifs with their respective labels for each of the sequences provided. 
-Dedicated to the cyanobacteria researches who spend many hours highlighting motifs in MS Word.
+  CIMS is a tool to extract the commonly used ITS folding motifs from a 16s-23s rRNA sequence. It takes a fasta or at least one Genbank accession number and returns a list of motifs with their respective labels for each of the sequences provided. 
+  Dedicated to the cyanobacteria researches who spend many hours highlighting motifs in MS Word.
 
 </div>
 
@@ -49,32 +49,32 @@ In the current version of the software, the motifs included in the standard outp
 
 
   #### Pre-Requisites
-    We get it, you're a biologist, we got you. All you need is beginner level of terminal... maybe not even that much. If you know how to browse to a directory (```cd```) and run an executable(```./cims```), you're good to go.
+  We get it, you're a biologist, we got you. All you need is beginner level of terminal... maybe not even that much. If you know how to browse to a directory (```cd```) and run an executable(```./cims```), you're good to go.
 
 
   #### Simple Method: Download the pre-packaged files from [Releases](https://github.com/nlabrad/CIMS-Cyanobacterial-ITS-motif-slicer/releases).
 
-    To keep things simple, we pre-packaged ```CIMS``` with all it's dependencies into a single file and compiled it for Windows, Linux and MacOS. These files are available under [Releases](https://github.com/nlabrad/CIMS-Cyanobacterial-ITS-motif-slicer/releases).
+  To keep things simple, we pre-packaged ```CIMS``` with all it's dependencies into a single file and compiled it for Windows, Linux and MacOS. These files are available under [Releases](https://github.com/nlabrad/CIMS-Cyanobacterial-ITS-motif-slicer/releases).
 
-    + Download the zip file that corresponds to your system.
-    + Unzip it in whichever directory you'd like. 
-    + You're done! :open_hands:
-    + To run, open your favorite Terminal, ```cd``` to that directory, and run cims as an executable, usually by typing ```./cims```.
+  + Download the zip file that corresponds to your system.
+  + Unzip it in whichever directory you'd like. 
+  + You're done! :open_hands:
+  + To run, open your favorite Terminal, ```cd``` to that directory, and run cims as an executable, usually by typing ```./cims```.
 
-    To keep things simple, we suggest saving cims to the directory where you'll have the fasta files you want to process. 
-    If you're pulling your sequences straight from Genbank, it doesn't really matter.
+  To keep things simple, we suggest saving cims to the directory where you'll have the fasta files you want to process. 
+  If you're pulling your sequences straight from Genbank, it doesn't really matter.
 
   #### Advanced Method: Download the Python script.
 
-    If you want to perhaps make your own changes to the flanking regions, or make changes to the code, you can simply download CIMS.py from and run it with Python. (But you probably already knew that if that's what you wanted). 
+  If you want to perhaps make your own changes to the flanking regions, or make changes to the code, you can simply download CIMS.py from and run it with Python. (But you probably already knew that if that's what you wanted). 
 
-    To run ```CIMS``` you will need:
-    + Python 3
-    + BioPython: ```$ pip install Biopython```
-    + Colorama ```$ pip install colorama```
+  To run ```CIMS``` you will need:
+  + Python 3
+  + BioPython: ```$ pip install Biopython```
+  + Colorama ```$ pip install colorama```
 
-    [BioPython](https://biopython.org/) allows CIMS to communicate with Genbank to download sequences.
-    [Colorama](https://github.com/tartley/colorama) allows us to easily output the motifs in pretty colors.
+  [BioPython](https://biopython.org/) allows CIMS to communicate with Genbank to download sequences.
+  [Colorama](https://github.com/tartley/colorama) allows us to easily output the motifs in pretty colors.
 
   Once you have those dependencies installed (either globally or in a virtual environment), simply run cims.py.
 
