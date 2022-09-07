@@ -10,7 +10,7 @@ Table of content
  * [Installation](#installation)
  * [Usage](#usage)
  * [Possible Errors](#possible-errors)
- * Thanks
+
 
 
 ### Why did we make this tool?
