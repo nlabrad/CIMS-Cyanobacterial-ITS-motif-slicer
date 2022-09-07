@@ -111,23 +111,22 @@ Options:
 
 #### Examples:
 ```cims =f allmycyanos.fasta```
+
 Result: CIMS will process the provided fasta file and return all the motifs it finds.
 
 ```cims -f ~/home/me/fasta/limnothrix_16-23_ITS.fasta -s d1d1, trna_ile, trna_ala, boxb```
+
 Result: Processes the limnothrix_16-23_ITS.fasta file stored in a directory that resides in /home/me/fasta and asks CIMS to only output d1d1, the tRNAs and BoxB motifs.
 
 ```cims -g KU574618.1 -e my@email.com```
+
 Result: Fetches the sequence of KU574618.1 from Genbank (providing an email that is required by NCBI), processes the sequence, and returns the motifs.
 
 ```cims -f allmycyanos.fasta -t```
+
 Result: Fetches the sequence from Genbank, and returns how many tRNAs were found on each organism. This allows to easily check if the organisms in the fasta are homologous operons.
 
 >If you ever get lost, you can always run ```cims -h``` or ```python cims.py -h``` and you will get a quick reference of the available options.
-
-
-
->If you run into any issues please open an issue ticket here: https://github.com/nlabrad/motifsearch/issues
-
 
 ### Possible errors: 
 
