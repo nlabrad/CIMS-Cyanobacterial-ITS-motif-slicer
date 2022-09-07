@@ -3,14 +3,14 @@
 
 # CIMS: Cyanobacterial ITS Motif Slicer
 
-  CIMS is a tool to extract the commonly used ITS folding motifs from a 16s-23s rRNA sequence. It takes a fasta or at least one Genbank accession number and returns a list of motifs with their respective labels for each of the sequences provided. 
+  ```CIMS``` is a tool to extract the commonly used ITS folding motifs from a 16s-23s rRNA sequence. It takes a fasta or at least one Genbank accession number and returns a list of motifs with their respective labels for each of the sequences provided. 
   Dedicated to the cyanobacteria researches who spend many hours highlighting motifs in MS Word.
 
 </div>
 
 ### Table of content
 ========
- * [Why did we make CIMS?](#why)
+ * [Why did we make ```CIMS```?](#why)
  * [What does it do again?](#what)
  * [Installation](#installation)
  * [Usage](#usage)
@@ -24,12 +24,12 @@
 
   We knew there was a better way to do this, so after dissecting the manual process, we created ```CIMS```.
   
-  CIMS finds the commonly used ITS folding motifs such as D1-D1’, Box B, tRNA-ile and tRNA-ala to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
+  ```CIMS``` finds the commonly used ITS folding motifs such as D1-D1’, Box B, tRNA-ile and tRNA-ala to ensure researchers are using homologous operons when comparing ITS secondary structures between taxa. 
 
 
 ### What does it do again?
 ---
-+ CIMS is a terminal application written in Python that 
++ ```CIMS``` is a terminal application written in Python that 
 + Can process one or more Genbank accession numbers or a fasta file with one or more sequences. 
 + Automatically talks to Genbank for you so you don't have to download the fasta files yourself.
 + Returns a text output with the motifs identified and their lenghts for you to use as you please.
@@ -60,32 +60,32 @@ In the current version of the software, the motifs included in the standard outp
   + Download the zip file that corresponds to your system.
   + Unzip it in whichever directory you'd like. 
   + You're done! :open_hands:
-  + To run, open your favorite Terminal, ```cd``` to that directory, and run cims as an executable, usually by typing ```./cims```.
+  + To run, open your favorite Terminal, ```cd``` to that directory, and run ```CIMS``` as an executable, usually by typing ```./cims```.
 
-  To keep things simple, we suggest saving cims to the directory where you'll have the fasta files you want to process. 
+  To keep things simple, we suggest saving ```CIMS``` to the directory where you'll have the fasta files you want to process. 
   If you're pulling your sequences straight from Genbank, it doesn't really matter.
 
   #### Advanced Method: Download the Python script.
 
-  If you want to perhaps make your own changes to the flanking regions, or make changes to the code, you can simply download CIMS.py from and run it with Python. (But you probably already knew that if that's what you wanted). 
+  If you want to perhaps make your own changes to the flanking regions, or make changes to the code, you can simply download ```CIMS.py``` from and run it with Python. (But you probably already knew that if that's what you wanted). 
 
   To run ```CIMS``` you will need:
   + Python 3
   + BioPython: ```$ pip install Biopython```
   + Colorama ```$ pip install colorama```
 
-  [BioPython](https://biopython.org/) allows CIMS to communicate with Genbank to download sequences.
+  [BioPython](https://biopython.org/) allows ```CIMS``` to communicate with Genbank to download sequences.
   [Colorama](https://github.com/tartley/colorama) allows us to easily output the motifs in pretty colors.
 
-  Once you have those dependencies installed (either globally or in a virtual environment), simply run cims.py.
+  Once you have those dependencies installed (either globally or in a virtual environment), simply run ```cims.py```.
 
 ### Usage
 ---
-  CIMS runs in the terminal. It is provided a sequence either through a FASTA file or by fetching them from Genbank based on accession numbers.
+  ```CIMS``` runs in the terminal. It is provided a sequence either through a FASTA file or by fetching them from Genbank based on accession numbers.
   The input for this tool must either be a fasta file with one or more properly formatted 16s-23s ITS sequences or a Genbank accession number to a 16s-23s ITS sequence.
 
 
-  Navigate to the location of the file (either cims or cims.py if you downloaded the script):
+  Navigate to the location where ```CIMS``` was saved.
 
   For example, in Windows, you'd use ```cd``` to move to a directory as such:
 
@@ -95,7 +95,7 @@ In the current version of the software, the motifs included in the standard outp
 
   ```cd /home/{your username}/{where you downloaded cims}```
 
-  To run CIMS, simply execute it by running ```./cims``` or ```python cims.py``` from the directory where it was saved. 
+  To run ```CIMS```, simply execute it by running ```./cims``` or ```python cims.py``` from the directory where it was saved. 
 
   When running this on your terminal the output will include all motifs found in the sequences given to the program. If you would like to save the output of your run remember to use “>>” to save output into a text file:
 
@@ -118,11 +118,11 @@ In the current version of the software, the motifs included in the standard outp
   #### Examples:
   ```cims =f allmycyanos.fasta```
 
-  Result: CIMS will process the provided fasta file and return all the motifs it finds.
+  Result: ```CIMS``` will process the provided fasta file and return all the motifs it finds.
 
   ```cims -f ~/home/me/fasta/limnothrix_16-23_ITS.fasta -s d1d1, trna_ile, trna_ala, boxb```
 
-  Result: Processes the limnothrix_16-23_ITS.fasta file stored in a directory that resides in /home/me/fasta and asks CIMS to only output d1d1, the tRNAs and BoxB motifs.
+  Result: Processes the limnothrix_16-23_ITS.fasta file stored in a directory that resides in /home/me/fasta and asks ```CIMS``` to only output d1d1, the tRNAs and BoxB motifs.
 
   ```cims -g KU574618.1 -e my@email.com```
 
@@ -132,7 +132,7 @@ In the current version of the software, the motifs included in the standard outp
 
   Result: Fetches the sequence from Genbank, and returns how many tRNAs were found on each organism. This allows to easily check if the organisms in the fasta are homologous operons.
 
-  >If you ever get lost, you can always run ```cims -h``` or ```python cims.py -h``` and you will get a quick reference of the available options.
+  **Note** If you ever get lost, you can always run ```cims -h``` or ```python cims.py -h``` and you will get a quick reference of the available options.
 
 ### Possible errors: 
 ---
