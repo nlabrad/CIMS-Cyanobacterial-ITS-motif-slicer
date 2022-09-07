@@ -1,10 +1,13 @@
 
 <div align='center'>
+
 # CIMS: Cyanobacterial ITS Motif Slicer
 
 CIMS is a tool to extract the commonly used ITS folding motifs from a 16s-23s rRNA sequence. It takes a fasta or at least one Genbank accession number and returns a list of motifs with their respective labels for each of the sequences provided. 
 Dedicated to the cyanobacteria researches who spend many hours highlighting motifs in MS Word.
+
 </div>
+
 Table of content
 ========
  * [Why did we make CIMS?](#why)
