@@ -329,22 +329,31 @@ def trna_check(motifs):
     else:
         print(Fore.RED + "tRNA1: " + trnas['tRNA_ile'])
 
-def generate_fasta(organisms):
+def generate_fasta(organisms, bymotif = False):
+    """Writes output to fasta file
+
+    Args:
+        organisms (list): list of organisms to write
+        singlefile (bool, optional): If -s is enabled, output to one file per motif with multiple organisms. Defaults to False.
+    """
     
+    p = Path('output')
+    p.mkdir(exist_ok=True) #If ./output doesn't exist, create it.
     for org in organisms:
-        p = Path('output')
-        p.mkdir(exist_ok=True)
-        #with (p / org["name"].replace('.','') + "-motifs.fasta").open('w') as fasta_output:
-        fasta_output = open("./output/" + org["name"].replace('.','') + "-motifs.fasta","w")
+        if not bymotif:
+            fasta_output = open("./output/" + org["name"].replace('.','') + "-motifs.fasta","w", encoding="utf8")
         for key in org:
-            if key != "name":
-                if (org[key]is not None):
-                    if (len(org[key]) > 1):
-                        for i in range(len(org[key])):
-                            fasta_output.write(">" + org["name"] + " - " + str(key) + "." + str(i) + "\n" + str(org[key][i]) + "\n")
-                    else:
-                        for entry in org[key]:
-                            fasta_output.write(">" + org["name"] + " - " + str(key) + "\n" + str(entry) + "\n")
+            if bymotif:
+                if key != "name":
+                    fasta_output = open("./output/" + key + "-output.fasta","w", encoding="utf8")
+                    if (org[key]is not None):
+                        if (len(org[key]) > 1):
+                            for i in range(len(org[key])):
+                                fasta_output.write(">" + org["name"] + " - " + str(key) + "." + str(i) + "\n" + str(org[key][i]) + "\n")
+                        else:
+                            for entry in org[key]:
+                                fasta_output.write(">" + org["name"] + " - " + str(key) + "\n" + str(entry) + "\n")
+            
         fasta_output.close()
         
 
@@ -426,14 +435,16 @@ if args.trna:
     for organism in processed_organisms:
         trna_check(organism)
 else:
-    delete_items = ["ITS_region", "leader", "d1d1", "sp_d2d3_sp", "tRNA_ile", "sp_v2_sp", "tRNA_ala", "BoxB", "BoxA", "D4", "V3"]
-    if args.select == 'all':
-        delete_items.clear()
-    else:
-        delete_items = [x for x in delete_items if x not in args.select] 
-    for organism in processed_organisms:
-        for item in delete_items:
-            del organism[item]
-        print_motifs(organism)
+    if args.select:
+        delete_items = ["ITS_region", "leader", "d1d1", "sp_d2d3_sp", "tRNA_ile", "sp_v2_sp", "tRNA_ala", "BoxB", "BoxA", "D4", "V3"]
+        if args.select == 'all':
+            delete_items.clear()
+        else:
+            delete_items = [x for x in delete_items if x not in args.select] 
+        for organism in processed_organisms:
+            for item in delete_items:
+                del organism[item]
+            print_motifs(organism)
     if args.output:
-        generate_fasta(processed_organisms)
+        generate_fasta(processed_organisms, args.select != 'all')
+        
