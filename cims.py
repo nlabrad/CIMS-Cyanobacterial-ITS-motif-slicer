@@ -7,8 +7,8 @@ from os import get_terminal_size
 from pathlib import Path
 from re import finditer, fullmatch, search
 from sys import argv
+from sys import exit as system_exit
 from time import sleep
-
 import colorama
 from Bio import Entrez, SeqIO  # import the required libraries
 from colorama import Back, Fore, Style
@@ -36,10 +36,12 @@ def parse_genbank(accession, email):
                 handle, "fasta"
             )  # get sequence in fasta format to be used as needed.
             handle.close()
+        return seq_record
     except IOError:
-        print("Network error. Could not fetch from genbank")
-        raise IOError
-    return seq_record
+        print ("Network error. Could not fetch from genbank")
+    finally:
+        system_exit(IOError)
+    
 
 
 def valid_email(unchecked_email):
@@ -200,10 +202,12 @@ def slice_motifs(seq_input, organism_name):
         motifs["BoxA"] = None
     else:
         for seq in boxa:
-            motifs["BoxA"].append(seq[::-1])  # reverses it back.
+            seq = seq[::-1][:-3] #reverse it and trim the ACT that belongs to D4
+            motifs["BoxA"].append(seq)  # reverses it back.
         its_seq = its_seq[its_seq.rindex(motifs["BoxA"][0]) - 3 :]
 
     # find D4
+    # TODO; make sure it starts at ACT
     d4 = find_motif("ACT", "TA[TGAC]", its_seq, 4, 20)
     if d4 is None:
         motifs["D4"] = None
@@ -551,8 +555,7 @@ if args.fasta:
         sequences = parse_fasta(fasta)
         processed_organisms = process_seqs(sequences)
     except IOError:
-        print("File not found.")
-        exit(1)
+        system_exit("File not found. Exiting")
 
 if args.genbank:
     # Get email for Entrez. Either from argument or ask the user for input
@@ -582,8 +585,7 @@ if args.genbank:
             sequences.append(parse_genbank(gb, user_email))
             processed_organisms = process_seqs(sequences)
         except IOError:
-            print("Error while parsing accession number. Exiting.")
-            exit(1)
+            system_exit("Error while parsing accession number. Exiting.")
 
 if args.trna:
     for organism in processed_organisms:
